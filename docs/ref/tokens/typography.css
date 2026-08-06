@@ -1,0 +1,46 @@
+/* OZMO Digital — Typography tokens */
+:root{
+  --font-display:"Fraunces","Georgia",serif;      /* headlines — soft warm serif */
+  --font-body:"Karla","Helvetica Neue",Arial,sans-serif; /* everything else */
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+
+  /* Fraunces optical/soft settings — warm, a touch of personality */
+  --fraunces-soft:"SOFT" 40,"WONK" 0,"opsz" 144; /* @kind other */
+
+  /* Type scale — 1.25 major-third-ish, tuned */
+  --text-xs:0.75rem;    /* 12 */
+  --text-sm:0.875rem;   /* 14 */
+  --text-base:1rem;     /* 16 */
+  --text-md:1.125rem;   /* 18 */
+  --text-lg:1.375rem;   /* 22 */
+  --text-xl:1.75rem;    /* 28 */
+  --text-2xl:2.25rem;   /* 36 */
+  --text-3xl:3rem;      /* 48 */
+  --text-4xl:4rem;      /* 64 */
+  --text-5xl:5.25rem;   /* 84 */
+
+  --leading-tight:1.08;
+  --leading-snug:1.25;
+  --leading-normal:1.55;
+  --leading-relaxed:1.7;
+
+  --tracking-tight:-0.02em;
+  --tracking-normal:0;
+  --tracking-wide:0.04em;
+  --tracking-caps:0.14em;   /* eyebrows / labels */
+
+  --weight-light:300;
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+
+  /* Semantic type roles */
+  --role-display:var(--weight-semibold) var(--text-4xl)/var(--leading-tight) var(--font-display);
+  --role-h1:var(--weight-semibold) var(--text-3xl)/var(--leading-tight) var(--font-display);
+  --role-h2:var(--weight-semibold) var(--text-2xl)/var(--leading-snug) var(--font-display);
+  --role-h3:var(--weight-medium) var(--text-lg)/var(--leading-snug) var(--font-display);
+  --role-body:var(--weight-regular) var(--text-base)/var(--leading-normal) var(--font-body);
+  --role-lead:var(--weight-regular) var(--text-md)/var(--leading-relaxed) var(--font-body);
+  --role-eyebrow:var(--weight-bold) var(--text-xs)/1 var(--font-body);
+}

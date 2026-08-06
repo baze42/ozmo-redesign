@@ -1,0 +1,28 @@
+<!-- @dsCard group="Brand" viewport="700x260" name="Motion ideas" subtitle="Signature moves: loop draw, rise-in, spark pulse, wipe underline" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body{margin:0;background:var(--bg-page);padding:18px;font-family:var(--font-body)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cell{background:var(--paper);border:1px solid var(--border-subtle);border-radius:var(--radius-md);height:186px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden;position:relative}
+.name{position:absolute;bottom:8px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+.desc{font-size:10px;color:var(--ink-400);position:absolute;bottom:22px;padding:0 8px;text-align:center}
+/* loop draw */
+.ring{width:56px;height:56px;border-radius:50%;border:7px solid var(--navy);border-right-color:var(--terracotta);border-bottom-color:var(--terracotta);animation:spin 2.4s var(--ease-standard) infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* rise in */
+.rise b{display:block;font-family:var(--font-display);font-weight:600;font-size:22px;color:var(--navy);animation:rise 2.6s var(--ease-out) infinite}
+@keyframes rise{0%{opacity:0;transform:translateY(14px)}25%,75%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
+/* spark pulse */
+.dot{width:20px;height:20px;border-radius:50%;background:var(--spark);animation:pulse 1.8s ease-in-out infinite;box-shadow:0 0 0 0 var(--spark)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(240,80,0,.5);transform:scale(1)}70%{box-shadow:0 0 0 22px rgba(240,80,0,0);transform:scale(1.12)}100%{box-shadow:0 0 0 0 rgba(240,80,0,0);transform:scale(1)}}
+/* wipe underline */
+.wipe{font-family:var(--font-display);font-weight:600;font-size:22px;color:var(--navy);position:relative;padding-bottom:8px}
+.wipe:after{content:"";position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--terracotta);transform-origin:left;animation:wipe 2.6s var(--ease-standard) infinite}
+@keyframes wipe{0%{transform:scaleX(0)}40%,70%{transform:scaleX(1)}100%{transform:scaleX(0);transform-origin:right}}
+</style></head><body>
+<div class="grid">
+<div class="cell"><div class="ring"></div><span class="desc">Ring draws / rotates on load</span><span class="name">Loop draw</span></div>
+<div class="cell"><div class="rise"><b>Grow local</b></div><span class="desc">Headlines rise + fade in</span><span class="name">Rise-in</span></div>
+<div class="cell"><div class="dot"></div><span class="desc">Status & CTA attention ping</span><span class="name">Spark pulse</span></div>
+<div class="cell"><div class="wipe">Our work</div><span class="desc">Terracotta wipes under links</span><span class="name">Wipe underline</span></div>
+</div>
+</body></html>

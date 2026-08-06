@@ -1,0 +1,64 @@
+/* OZMO Digital — Color tokens */
+:root{
+  /* Brand core */
+  --navy-900:#132741;
+  --navy-800:#1a3251;
+  --navy:#1F3A5F;          /* primary */
+  --navy-600:#2c4d76;
+  --navy-500:#3d6191;
+  --navy-300:#8ba1bd;
+  --navy-100:#d7dfea;
+
+  --terracotta-700:#8f4519;
+  --terracotta-600:#a5521f;
+  --terracotta:#C1622D;    /* secondary */
+  --terracotta-400:#d3844f;
+  --terracotta-200:#eabfa2;
+  --terracotta-100:#f4dcc9;
+
+  /* Spark — pulled from the logo mark, energy/motion accent only */
+  --spark:#F05000;
+  --spark-400:#ff7433;
+
+  /* Neutrals — warm, built off the cream background */
+  --cream:#F5EFE6;         /* background */
+  --cream-200:#efe7da;
+  --cream-300:#e6dccb;
+  --paper:#FBF8F2;         /* raised surface / card */
+  --ink:#2A2725;           /* primary text */
+  --ink-600:#57524d;
+  --ink-400:#847d75;
+  --ink-200:#c4bcb1;
+  --white:#ffffff;
+
+  /* Semantic */
+  --success:#3f7d54;
+  --warning:#C1622D;
+  --danger:#b23b30;
+  --info:#2c4d76;
+
+  /* ---- Semantic aliases ---- */
+  --bg-page:var(--cream);
+  --bg-page-alt:var(--cream-200);
+  --surface-card:var(--paper);
+  --surface-raised:var(--white);
+  --surface-inverse:var(--navy);
+
+  --text-heading:var(--navy);
+  --text-body:var(--ink);
+  --text-muted:var(--ink-400);
+  --text-on-navy:var(--cream);
+  --text-on-terracotta:var(--white);
+  --text-link:var(--terracotta-600);
+  --text-link-hover:var(--terracotta-700);
+
+  --border-subtle:var(--cream-300);
+  --border-default:var(--ink-200);
+  --border-strong:var(--navy-300);
+
+  --accent-primary:var(--navy);
+  --accent-secondary:var(--terracotta);
+  --accent-energy:var(--spark);
+
+  --focus-ring:var(--terracotta);
+}

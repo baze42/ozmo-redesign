@@ -1,0 +1,17 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Pairings & contrast" subtitle="Approved text-on-background combinations" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body{margin:0;background:var(--bg-page);font-family:var(--font-body);padding:18px}
+.row{display:flex;gap:10px}
+.chip{flex:1;height:96px;border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow-xs)}
+.chip .big{font-family:var(--font-display);font-weight:600;font-size:26px}
+.chip .s{font-size:10px;opacity:.75}
+.ok{font-size:9px;font-weight:700;letter-spacing:.1em;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.2)}
+</style></head><body>
+<div class="row">
+<div class="chip" style="background:var(--navy);color:var(--cream)"><span class="big">Aa</span><span class="s">cream on navy</span><span class="ok">AAA</span></div>
+<div class="chip" style="background:var(--cream);color:var(--navy)"><span class="big">Aa</span><span class="s">navy on cream</span><span class="ok">AAA</span></div>
+<div class="chip" style="background:var(--terracotta);color:#fff"><span class="big">Aa</span><span class="s">white on terracotta</span><span class="ok">AA</span></div>
+<div class="chip" style="background:var(--cream);color:var(--terracotta-700)"><span class="big">Aa</span><span class="s">terra-700 on cream</span><span class="ok">AA</span></div>
+<div class="chip" style="background:var(--paper);color:var(--ink)"><span class="big">Aa</span><span class="s">ink on paper</span><span class="ok">AAA</span></div>
+</div>
+</body></html>
