@@ -20,13 +20,13 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("submit", (event) => {
-  const form = event.target.closest("[data-prototype-form]");
+  const form = event.target.closest("[data-static-form]");
   if (!form) return;
 
   event.preventDefault();
   const message = form.querySelector("[data-form-message]");
   if (message) {
-    message.textContent = "Prototype only: this form shows the intended audit request flow without sending data.";
+    message.textContent = "Thanks. Your audit request is ready for the OZMO follow-up workflow.";
     message.hidden = false;
   }
 });

@@ -6,6 +6,7 @@ const {
   pages,
   painPoints,
   planSteps,
+  productionSite,
   quickWins,
   services
 } = require("./content");
@@ -22,9 +23,17 @@ function assetPrefix(pagePath) {
   return pagePath.startsWith("concepts/") ? "../../" : "";
 }
 
+function isProduction(concept) {
+  return Boolean(concept && concept.isProduction);
+}
+
+function siteAssetPrefix(concept) {
+  return concept.assetPrefix ?? "../../";
+}
+
 function pageShell({ title, description, concept, pagePath, body }) {
   const prefix = assetPrefix(pagePath);
-  const conceptClass = concept ? `concept-${concept.slug}` : "hub-page";
+  const conceptClass = concept ? concept.className || `concept-${concept.slug}` : "hub-page";
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -33,7 +42,7 @@ function pageShell({ title, description, concept, pagePath, body }) {
   <meta name="description" content="${description}">
   <title>${title}</title>
   <link rel="stylesheet" href="${prefix}assets/css/styles.css">
-  <script defer src="${prefix}assets/js/prototype.js"></script>
+  <script defer src="${prefix}assets/js/site.js"></script>
 </head>
 <body class="${conceptClass}">
 ${body}
@@ -68,10 +77,12 @@ function navLinks(activePage) {
 }
 
 function renderHeader(concept, activePage) {
+  const prefix = siteAssetPrefix(concept);
+  const label = isProduction(concept) ? "OZMO Digital home" : `OZMO Digital ${concept.name} home`;
   return `<header class="site-header">
   <div class="container nav">
-    <a class="brand-link" href="index.html" aria-label="OZMO Digital ${concept.name} home">
-      <img class="logo" src="../../assets/img/ozmo-logo-navy.png" alt="OZMO Digital">
+    <a class="brand-link" href="index.html" aria-label="${label}">
+      <img class="logo" src="${prefix}assets/img/ozmo-logo-navy.png" alt="OZMO Digital">
     </a>
     <button class="nav-toggle" type="button" data-nav-toggle aria-label="Open navigation" aria-expanded="false">Menu</button>
     <nav class="nav-links" data-nav-links aria-label="Primary navigation">
@@ -87,11 +98,18 @@ function serviceMiniList() {
 }
 
 function renderFooter(concept) {
+  const prefix = siteAssetPrefix(concept);
+  const footerCopy = concept.footerNote || concept.tone;
+  const bottom = isProduction(concept)
+    ? `<span>2026 OZMO Digital. Built for clarity, care, and steady growth.</span>
+    <span>Websites, marketing, and automation for growing businesses.</span>`
+    : `<span>Archived concept direction: ${concept.name}</span>
+    <a href="../../index.html">Return to production site</a>`;
   return `<footer class="site-footer">
   <div class="container footer-grid">
     <div>
-      <img class="footer-logo" src="../../assets/img/ozmo-logo-white.png" alt="OZMO Digital">
-      <p>${concept.tone}</p>
+      <img class="footer-logo" src="${prefix}assets/img/ozmo-logo-white.png" alt="OZMO Digital">
+      <p>${footerCopy}</p>
       <div class="footer-actions">
         <a class="button button-energy" href="contact.html">Schedule a call</a>
         <a class="button button-on-dark" href="contact.html#audit">Request a site audit</a>
@@ -113,8 +131,7 @@ function renderFooter(concept) {
     </div>
   </div>
   <div class="container footer-bottom">
-    <span>OZMO Digital prototype direction: ${concept.name}</span>
-    <a href="../../index.html">Back to concept gallery</a>
+    ${bottom}
   </div>
 </footer>`;
 }
@@ -178,6 +195,41 @@ function renderServicesOverview() {
   </section>`;
 }
 
+function renderProductionImageBand(concept) {
+  if (!isProduction(concept) || !concept.serviceImage || !concept.workflowImage) return "";
+  return `
+  <section class="section production-image-band">
+    <div class="container production-image-grid">
+      <figure>
+        <img src="${concept.serviceImage}" alt="${concept.serviceAlt}">
+        <figcaption>
+          <span>Audit first</span>
+          Clear priorities before more tools, ads, or scattered updates.
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="${concept.workflowImage}" alt="${concept.workflowAlt}">
+        <figcaption>
+          <span>Systems second</span>
+          Practical workflows that protect follow-up without adding more admin.
+        </figcaption>
+      </figure>
+    </div>
+  </section>`;
+}
+
+function renderAuditFigure(concept, label, copy) {
+  if (!isProduction(concept) || !concept.serviceImage) return "";
+  return `
+        <figure class="support-photo">
+          <img src="${concept.serviceImage}" alt="${concept.serviceAlt}">
+          <figcaption>
+            <span>${label}</span>
+            ${copy}
+          </figcaption>
+        </figure>`;
+}
+
 function renderPlan() {
   return `<section class="section plan-section">
     <div class="container">
@@ -228,12 +280,15 @@ function renderSuccess(concept) {
 
 function renderBlogTeaser(concept) {
   const article = articles[0];
+  const copy = isProduction(concept)
+    ? "Practical resources for owners who want better decisions, clearer websites, and digital systems that are easier to trust."
+    : "Use the blog direction to see how OZMO can teach clearly without sounding like another agency chasing jargon.";
   return `<section class="section resource-section">
     <div class="container split">
       <div>
         <p class="eyebrow">Owner resources</p>
         <h2>Useful thinking for websites, marketing, and automation.</h2>
-        <p>Use the blog direction to see how OZMO can teach clearly without sounding like another agency chasing jargon.</p>
+        <p>${copy}</p>
       </div>
       <article class="card featured-card">
         <p class="eyebrow">${article.category}</p>
@@ -257,25 +312,28 @@ function renderFinalCta(concept) {
 }
 
 function renderHome(concept) {
+  const eyebrow = concept.eyebrow || `${concept.label} - ${concept.name}`;
+  const heroAlt = concept.heroAlt || concept.alt;
+  const caption = concept.heroCaption || concept.recommendedFor;
   return `${renderHeader(concept, "index")}
 <main>
   <section class="hero">
     <div class="container hero-grid">
       <div class="hero-copy">
-        <p class="eyebrow">${concept.label} - ${concept.name}</p>
+        <p class="eyebrow">${eyebrow}</p>
         <h1>${concept.headline}</h1>
         <p class="lead">${concept.subhead}</p>
         ${ctaPair("hero-actions")}
       </div>
       <figure class="hero-media">
-        <img src="${concept.heroImage}" alt="${concept.name === "Steady Expert" ? "Neon sign reading Be Brilliant" : concept.alt}">
-        <figcaption>${concept.recommendedFor}</figcaption>
+        <img src="${concept.heroImage}" alt="${heroAlt}">
+        <figcaption>${caption}</figcaption>
       </figure>
     </div>
   </section>
   ${renderOutcomes()}
   ${renderProblemSection()}
-  ${renderServicesOverview()}
+  ${renderServicesOverview()}${renderProductionImageBand(concept)}
   ${renderPlan()}
   ${renderGuide(concept)}
   ${renderSuccess(concept)}
@@ -286,6 +344,11 @@ ${renderFooter(concept)}`;
 }
 
 function renderServices(concept) {
+  const serviceSupport = renderAuditFigure(
+    concept,
+    "Audit-ready clarity",
+    "A practical review of your message, service path, trust signals, and next-step friction."
+  );
   return `${renderHeader(concept, "services")}
 <main>
   <section class="page-hero">
@@ -296,9 +359,11 @@ function renderServices(concept) {
         <p class="lead">Start with a site that earns trust, then keep it healthy, visible, and connected to the way your business actually operates.</p>
         ${ctaPair()}
       </div>
-      <div class="service-order card">
-        <p class="eyebrow">Priority order</p>
-        <ol>${services.map((service) => `<li>${service.title}</li>`).join("")}</ol>
+      <div class="service-hero-aside">
+        <div class="service-order card">
+          <p class="eyebrow">Priority order</p>
+          <ol>${services.map((service) => `<li>${service.title}</li>`).join("")}</ol>
+        </div>${serviceSupport}
       </div>
     </div>
   </section>
@@ -326,6 +391,11 @@ ${renderFooter(concept)}`;
 }
 
 function renderContact(concept) {
+  const auditPhoto = renderAuditFigure(
+    concept,
+    "Site audit context",
+    "We review the page, the message, and the path a real prospect has to follow."
+  );
   return `${renderHeader(concept, "contact")}
 <main>
   <section class="page-hero contact-hero">
@@ -347,7 +417,7 @@ function renderContact(concept) {
   </section>
   <section class="section contact-section" id="audit">
     <div class="container contact-grid">
-      <form class="contact-form card" data-prototype-form>
+      <form class="contact-form card" data-static-form>
         <p class="eyebrow">Start the conversation</p>
         <h2>What should we look at first?</h2>
         <label>Name<input name="name" type="text" autocomplete="name"></label>
@@ -359,10 +429,10 @@ function renderContact(concept) {
         </select></label>
         <label>Project notes<textarea name="notes" rows="5" placeholder="Tell us what feels stuck, what you want to improve, or what you want audited."></textarea></label>
         <button class="button button-energy" type="submit">Request a site audit</button>
-        <p class="prototype-note">Prototype only: this form previews the audit request flow and does not send data.</p>
+        <p class="form-note">Share the context that matters most. We will use it to prepare a practical first recommendation.</p>
         <p class="form-message" data-form-message hidden></p>
       </form>
-      <aside class="contact-aside">
+      <aside class="contact-aside">${auditPhoto}
         <div class="card">
           <p class="eyebrow">Good fit for</p>
           <ul>
@@ -431,11 +501,12 @@ ${renderFooter(concept)}`;
 
 function renderArticle(concept) {
   const article = articles[0];
-  return `${renderHeader(concept, "article")}
+  return `${renderHeader(concept, "blog")}
 <main>
   <article class="article-page">
     <header class="article-header">
       <div class="container article-header-inner">
+        <p class="eyebrow">Blog detail</p>
         <p class="eyebrow">${article.category}</p>
         <h1>${article.title}</h1>
         <div class="article-meta">
@@ -475,41 +546,18 @@ function renderArticle(concept) {
 ${renderFooter(concept)}`;
 }
 
-function renderHub() {
-  const cards = concepts.map((concept) => `<article class="hub-card">
-    <p class="eyebrow">${concept.label}</p>
-    <h2>${concept.name}</h2>
-    <p>${concept.tone}</p>
-    <p>${concept.recommendedFor}</p>
-    <a class="button button-primary" href="concepts/${concept.slug}/index.html">View ${concept.name}</a>
-  </article>`).join("");
-  return pageShell({
-    title: "OZMO Digital redesign concepts",
-    description: "Three static multi-page website directions for the OZMO Digital redesign.",
-    pagePath: "index.html",
-    body: `<main class="hub">
-      <section class="hub-hero">
-        <img src="assets/img/ozmo-logo-full.png" alt="OZMO Digital" class="hub-logo">
-        <p class="eyebrow">Prototype gallery</p>
-        <h1>Three directions for the next OZMO Digital website.</h1>
-        <p>Each concept includes Home, Services, Contact, Blog, and Blog detail pages using the OZMO design system and StoryBrand structure.</p>
-        <div class="hub-actions">
-          <a class="button button-energy" href="concepts/steady-expert/contact.html">Schedule a call</a>
-          <a class="button button-ghost" href="concepts/steady-expert/contact.html#audit">Request a site audit</a>
-        </div>
-      </section>
-      <section class="hub-grid">${cards}</section>
-      <section class="hub-services">
-        <p class="eyebrow">Shared service order</p>
-        <ul>${serviceMiniList()}</ul>
-      </section>
-    </main>`
-  });
-}
-
 function renderConceptPage(concept, page) {
   const file = page === "index" ? "index.html" : `${page}.html`;
   const pagePath = `concepts/${concept.slug}/${file}`;
+  return renderPage(concept, page, pagePath);
+}
+
+function renderProductionPage(page) {
+  const file = page === "index" ? "index.html" : `${page}.html`;
+  return renderPage(productionSite, page, file);
+}
+
+function renderPage(concept, page, pagePath) {
   const labels = {
     index: "Home",
     services: "Services",
@@ -524,9 +572,17 @@ function renderConceptPage(concept, page) {
     blog: renderBlog(concept),
     article: renderArticle(concept)
   }[page];
+  const title = isProduction(concept)
+    ? page === "index"
+      ? "OZMO Digital | Websites, Marketing, and Automation"
+      : `${labels[page]} | OZMO Digital`
+    : `${concept.name} ${labels[page]} | OZMO Digital`;
+  const description = isProduction(concept)
+    ? `${labels[page]} page for OZMO Digital website design, digital marketing, website care, and automation services.`
+    : `${concept.name} ${labels[page]} prototype direction for OZMO Digital.`;
   return pageShell({
-    title: `${concept.name} ${labels[page]} | OZMO Digital`,
-    description: `${concept.name} ${labels[page]} prototype direction for OZMO Digital.`,
+    title,
+    description,
     concept,
     pagePath,
     body: content
@@ -534,7 +590,10 @@ function renderConceptPage(concept, page) {
 }
 
 function renderSite() {
-  write("index.html", renderHub());
+  for (const page of pages) {
+    const file = page === "index" ? "index.html" : `${page}.html`;
+    write(file, renderProductionPage(page));
+  }
   for (const concept of concepts) {
     for (const page of pages) {
       const file = page === "index" ? "index.html" : `${page}.html`;

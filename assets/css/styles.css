@@ -468,6 +468,61 @@ li + li {
   color: var(--ink-600);
 }
 
+.production-site .hero {
+  padding-top: 96px;
+}
+
+.production-site .hero-copy {
+  max-width: 720px;
+}
+
+.production-image-band {
+  background: var(--navy);
+  color: var(--cream);
+}
+
+.production-image-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.production-image-grid figure {
+  min-height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(245, 239, 230, 0.18);
+  border-radius: var(--radius-lg);
+  background: rgba(245, 239, 230, 0.08);
+  box-shadow: var(--shadow-lg);
+}
+
+.production-image-grid img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.production-image-grid figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 20px 22px;
+  color: rgba(245, 239, 230, 0.84);
+  font-size: 1rem;
+}
+
+.production-image-grid figcaption span {
+  color: var(--terracotta-200);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .plan-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   counter-reset: plan;
@@ -581,9 +636,46 @@ li + li {
   padding: 88px 0 72px;
 }
 
+.service-hero-aside {
+  display: grid;
+  gap: 22px;
+}
+
 .service-order ol {
   color: var(--navy);
   font-weight: 800;
+}
+
+.support-photo {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--cream-300);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  box-shadow: var(--shadow-md);
+}
+
+.support-photo img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.support-photo figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  color: var(--ink-600);
+  font-size: 0.95rem;
+}
+
+.support-photo figcaption span {
+  color: var(--terracotta-700);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .service-detail-list {
@@ -660,6 +752,11 @@ textarea {
   background: var(--terracotta-100);
   color: var(--terracotta-700);
   font-weight: 700;
+}
+
+.form-note {
+  color: var(--ink-600);
+  font-size: 0.95rem;
 }
 
 .contact-aside {
@@ -1071,7 +1168,8 @@ textarea {
 
   .hub-grid,
   .article-grid,
-  .footer-grid {
+  .footer-grid,
+  .production-image-grid {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -1156,6 +1254,7 @@ textarea {
   .plan-grid,
   .hub-grid,
   .article-grid,
+  .production-image-grid,
   .footer-grid,
   .hub-services ul,
   .success-panel,

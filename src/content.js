@@ -186,6 +186,34 @@ const concepts = [
   }
 ];
 
+const productionSite = {
+  slug: "steady-expert",
+  name: "OZMO Digital",
+  isProduction: true,
+  className: "production-site concept-steady-expert",
+  assetPrefix: "",
+  tone: "Classic trust, warmed up for small-business owners who need digital work handled with care.",
+  footerNote: "Websites, marketing, and automation handled with care for growing local businesses.",
+  eyebrow: "Websites / marketing / automation",
+  heroImage: "assets/img/be-brilliant-hero.jpg",
+  heroAlt: "Neon sign reading Be Brilliant",
+  heroCaption: "A clearer digital presence gives you more room to do the work only you can do.",
+  photo: "assets/img/steady-guide-session.png",
+  serviceImage: "assets/img/steady-site-audit.png",
+  workflowImage: "assets/img/steady-owner-workflow.png",
+  alt: "Business owners reviewing a website and marketing plan with a digital advisor",
+  serviceAlt: "Website audit planning desk with laptop, notes, and checklist",
+  workflowAlt: "Small-business owner reviewing digital workflow notes beside a laptop",
+  headline: "Stop juggling your digital marketing. Start growing with confidence.",
+  subhead: "OZMO Digital handles your website, marketing, care, and automation so you can stay focused on customers and the business you are building.",
+  proof: "Get a clearer website, a steadier marketing rhythm, and fewer digital tasks competing for your attention.",
+  guideTitle: "A steady guide for the digital work you should not have to carry alone.",
+  guideCopy: "We understand how frustrating digital marketing can feel when you are busy running the business. OZMO brings calm strategy, careful execution, and a practical plan you can trust.",
+  successTitle: "A calmer digital presence that works as hard as you do.",
+  metric: "1 clear plan",
+  stat: "Website, marketing, care, and follow-up aligned around one practical path."
+};
+
 const pages = ["index", "services", "contact", "blog", "article"];
 
 module.exports = {
@@ -194,6 +222,7 @@ module.exports = {
   pages,
   painPoints,
   planSteps,
+  productionSite,
   quickWins,
   services
 };
