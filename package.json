@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "build": "node src/build.js",
+    "test": "node src/verify.js",
+    "serve": "python3 -m http.server 4173"
+  },
+  "devDependencies": {}
+}

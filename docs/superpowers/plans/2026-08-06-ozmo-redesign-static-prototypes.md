@@ -513,7 +513,7 @@ const requiredSnippets = [
   "Automation, CRM, and email workflows"
 ];
 
-const forbidden = ["Latin filler text", "unfinished marker", "deferred marker", "Brixies © 2025"];
+const forbidden = ["Latin filler text", "unfinished marker", "deferred marker", "old Brixies footer text"];
 ```
 
 For every generated page, assert required navigation links exist for `index.html`, `services.html`, `contact.html`, `blog.html`, and `article.html`. On contact pages, assert the form includes `data-prototype-form` and does not include an `action="https://` attribute.
