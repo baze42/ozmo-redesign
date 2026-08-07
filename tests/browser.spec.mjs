@@ -30,6 +30,11 @@ test("anchor navigation reaches the audit form", async ({ page }) => {
   await expect(page.locator("#audit-form")).toBeInViewport();
 });
 
+test("hero audit CTA reaches the audit form", async ({ page }) => {
+  await page.locator(".hero-actions").getByRole("link", { name: "Request Your Digital Growth Audit" }).click();
+  await expect(page.locator("#audit-form")).toBeInViewport();
+});
+
 test("audit form validates and shows success without navigation", async ({ page }) => {
   await page.locator("#audit-form").scrollIntoViewIfNeeded();
   await page.getByRole("button", { name: "Request Your Digital Growth Audit" }).click();
