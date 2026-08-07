@@ -37,18 +37,18 @@ Full prompt text used:
 ```text
 Use case: photorealistic-natural
 Asset type: Ozmo Digital pain-point section image
-Primary request: Create an elegant but slightly tense editorial workspace scene showing scattered marketing notes, an open laptop, calendar reminders, website mockup papers, and lead follow-up tasks.
+Primary request: Create an elegant, slightly tense editorial workspace scene showing scattered marketing planning materials, an open laptop, a calendar, website mockup papers, and lead follow-up tasks.
 Scene/backdrop: Refined small-business desk with warm neutral materials and restrained navy and terracotta details.
-Subject: No people required; the business owner's digital overwhelm is shown through the objects.
+Subject: No people required; show digital overwhelm through organized planning objects only.
 Style/medium: Premium editorial photography, realistic surfaces, calm composition.
 Composition/framing: Wide 16:7-friendly scene that can crop safely on desktop and mobile.
 Lighting/mood: Natural light, composed, thoughtful, not chaotic.
 Color palette: Warm background with navy and terracotta accents.
-Constraints: no visible real brand names, no readable distorted UI text, no watermark.
-Avoid: messy chaos, stock-photo desk clutter, fake corporate props, dark tech mood.
+Constraints: Absolutely no watermark, no signature, no logo mark, no visible brand names, no readable handwriting, no readable sticky-note text, and no readable UI text. Use abstract lines, blurred marks, or blank planning cards instead of any words or legible characters.
+Avoid: messy chaos, stock-photo clutter, fake corporate props, dark tech mood.
 ```
 
-Fallback note: A future replacement should preserve the wide 16:7-friendly workspace composition, warm neutral surface with navy and terracotta cues, crop-safe framing, and every listed constraint and avoid item.
+Fallback note: A future replacement should preserve the wide 16:7-friendly workspace composition, warm neutral surface with navy and terracotta cues, crop-safe framing, blank or abstract planning materials, and every listed constraint and avoid item.
 
 ## Connected Systems
 
