@@ -26,6 +26,11 @@ const concepts = [
     root: path.join(repoRoot, 'concepts', '02-local-growth-studio'),
     assets: ['assets/img/hero-local-growth.png', 'assets/img/local-search-map.png', 'assets/img/owner-welcome.png', 'assets/img/community-planning.png', 'assets/img/marketing-rhythm.png'],
   },
+  {
+    label: 'Concept 3',
+    root: path.join(repoRoot, 'concepts', '03-website-care-redesign'),
+    assets: ['assets/img/hero-website-redesign.png', 'assets/img/redesign-review.png', 'assets/img/care-checklist.png', 'assets/img/conversion-path.png', 'assets/img/launch-workshop.png'],
+  },
 ];
 const forbidden = [/lorem ipsum/i, /fake testimonial/i, /fake client/i, /prototype only/i, /\bTODO\b/i, /\bTBD\b/i, /verified result/i];
 

@@ -8,7 +8,28 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const concepts = [
   { name: 'Concept 1', path: '/concepts/01-digital-operations-partner', auditButton: /request a site audit/i, screenshotPrefix: 'concept-1' },
   { name: 'Concept 2', path: '/concepts/02-local-growth-studio', auditButton: /request a site audit/i, screenshotPrefix: 'concept-2-local-growth' },
+  { name: 'Concept 3', path: '/concepts/03-website-care-redesign', auditButton: /request a site audit/i, screenshotPrefix: 'concept-3-website-care' },
 ];
+const auditGoalLabels = {
+  'Concept 1': 'What feels hardest right now?',
+  'Concept 2': 'What local growth goal matters most right now?',
+  'Concept 3': 'What is not working on your website right now?',
+};
+const timelineLabels = {
+  'Concept 1': 'In the next 30 days',
+  'Concept 2': 'Ready to start soon',
+  'Concept 3': 'Ready to start soon',
+};
+const contactReasonLabels = {
+  'Concept 1': 'General question',
+  'Concept 2': 'Not sure yet',
+  'Concept 3': 'Not sure yet',
+};
+const probeImages = {
+  'Concept 1': 'assets/img/hero-digital-operations.png',
+  'Concept 2': 'assets/img/hero-local-growth.png',
+  'Concept 3': 'assets/img/hero-website-redesign.png',
+};
 const pages = ['index.html', 'services.html', 'site-audit.html', 'about.html', 'insights.html', 'contact.html'];
 let server;
 let baseUrl;
@@ -49,10 +70,8 @@ async function completeAudit(page, concept) {
   await page.getByRole('textbox', { name: 'Email', exact: true }).fill('pat@example.com');
   await page.getByLabel('Company').fill('Pat Services');
   await page.getByLabel('Website URL').fill('https://example.com');
-  const goalLabel = concept.name === 'Concept 2' ? 'What local growth goal matters most right now?' : 'What feels hardest right now?';
-  await page.getByLabel(goalLabel).fill('The website is dated and follow-up is hard to track.');
-  const timelineLabel = concept.name === 'Concept 2' ? 'Ready to start soon' : 'In the next 30 days';
-  await page.getByLabel('Timeline').selectOption({ label: timelineLabel });
+  await page.getByLabel(auditGoalLabels[concept.name]).fill('The site feels dated and the next step is unclear.');
+  await page.getByLabel('Timeline').selectOption({ label: timelineLabels[concept.name] });
   await page.getByLabel('Notes').fill('Please review service pages and lead capture.');
 }
 
@@ -61,8 +80,7 @@ async function completeContact(page, concept) {
   await page.getByRole('textbox', { name: 'Email', exact: true }).fill('pat@example.com');
   await page.getByLabel('Company').fill('Pat Services');
   await page.getByLabel('Website URL').fill('https://example.com');
-  const reasonLabel = concept.name === 'Concept 2' ? 'Not sure yet' : 'General question';
-  await page.getByLabel('Reason for reaching out').selectOption({ label: reasonLabel });
+  await page.getByLabel('Reason for reaching out').selectOption({ label: contactReasonLabels[concept.name] });
   await page.getByLabel('Message').fill('I need help improving lead follow-up.');
 }
 
@@ -159,8 +177,7 @@ for (const concept of concepts) {
     await expect(page.getByLabel('Name')).toHaveValue('');
     await expect(page.getByRole('textbox', { name: 'Email', exact: true })).toHaveValue('');
     await expect(page.getByLabel('Website URL')).toHaveValue('');
-    const goalLabel = concept.name === 'Concept 2' ? 'What local growth goal matters most right now?' : 'What feels hardest right now?';
-    await expect(page.getByLabel(goalLabel)).toHaveValue('');
+    await expect(page.getByLabel(auditGoalLabels[concept.name])).toHaveValue('');
     expect(submissions).toHaveLength(0);
   });
 
@@ -242,7 +259,7 @@ for (const concept of concepts) {
 for (const concept of concepts) {
   test(`${concept.name} settleForScreenshot loads and decodes lazy images before capture`, async ({ page }) => {
     await gotoConceptPage(page, concept, 'index.html');
-    const probeImage = concept.name === 'Concept 2' ? 'assets/img/hero-local-growth.png' : 'assets/img/hero-digital-operations.png';
+    const probeImage = probeImages[concept.name];
     await page.evaluate((src) => {
     const image = document.createElement('img');
     image.id = 'lazy-screenshot-probe';
