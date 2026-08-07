@@ -142,3 +142,25 @@ test('public body and meta copy uses OZMO first-person voice', () => {
     }
   }
 });
+
+test('Task 2 forms stay content-only before Task 4 behavior exists', () => {
+  for (const page of [pages.audit, pages.contact]) {
+    assert.doesNotMatch(html(page), /<button\b[^>]*type=["']submit["']/i, `${page} should not submit before Task 4`);
+  }
+});
+
+test('public copy avoids remaining faceless voice phrases', () => {
+  const forbidden = [
+    /the owner is left/i,
+    /Some businesses begin/i,
+    /visitors ask/i,
+    /Visitors may be interested/i,
+    /Give prospects/i,
+  ];
+  for (const page of Object.values(pages)) {
+    const text = publicCopy(html(page));
+    for (const pattern of forbidden) {
+      assert.doesNotMatch(text, pattern, `${page} should use direct we/you voice instead of ${pattern}`);
+    }
+  }
+});

@@ -56,6 +56,54 @@ Result: 14 tests passed, 0 failed.
 - The referenced image files are intentionally not present yet. Task 5 is responsible for creating the final PNG assets; these pages now reference their specified paths and supply meaningful alt text.
 - Forms are semantic content only in this task. Validation, loading, success, and error behavior remain scoped to Task 4.
 
+## Fix: Content-Only Forms And Remaining Voice Issues
+
+### RED
+
+Command:
+
+```bash
+node --test tests/content-contract.test.mjs
+```
+
+Result: 8 tests run, 6 passed, 2 failed.
+
+The new assertions failed as expected because `site-audit.html` still had a native `type="submit"` button and the listed faceless phrases were still present in public copy.
+
+### GREEN
+
+Commands:
+
+```bash
+node --test tests/content-contract.test.mjs tests/static-contract.test.mjs
+npm test
+git diff --check
+```
+
+Result: both test commands passed with 17 tests passed and 0 failed. `git diff --check` passed with no whitespace errors.
+
+### Files Changed
+
+- `tests/content-contract.test.mjs`
+- `concepts/01-digital-operations-partner/index.html`
+- `concepts/01-digital-operations-partner/services.html`
+- `concepts/01-digital-operations-partner/site-audit.html`
+- `concepts/01-digital-operations-partner/about.html`
+- `concepts/01-digital-operations-partner/insights.html`
+- `concepts/01-digital-operations-partner/contact.html`
+
+### Self-Review
+
+- Changed both Task 2 form buttons from `type="submit"` to inert `type="button"`; no JavaScript submission or backend behavior was added.
+- Kept all existing form labels, fields, fieldsets, structure, and accessible form labels intact for Task 4.
+- Rewrote the requested public copy into direct `we`/`you` language while preserving formal brand labels and navigation titles.
+- Added focused contracts for content-only forms and all five listed faceless phrases.
+- Confirmed the full test suite passes and `git diff --check` is clean.
+
+### Concerns
+
+- Form validation, submission, loading, success, and error behavior remain intentionally deferred to Task 4.
+
 ## Fix: OZMO Voice Compliance
 
 ### RED
