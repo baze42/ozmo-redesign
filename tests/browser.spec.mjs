@@ -142,6 +142,21 @@ for (const concept of concepts) {
   });
 }
 
+test('Concept 3 invalid enhanced audit submission reports real field errors and focuses the first invalid field', async ({ page }) => {
+  const concept = concepts.find(({ name }) => name === 'Concept 3');
+  await gotoConceptPage(page, concept, 'site-audit.html');
+  const form = page.locator('[data-ozmo-form="audit"]');
+  await page.getByRole('button', { name: concept.auditButton }).click();
+
+  await expect(form.locator('[data-form-error]')).toContainText(/Name is required\./i);
+  await expect(page.getByLabel('Name')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByLabel('Name')).toHaveAttribute('aria-describedby', 'audit-name-error');
+  await expect(page.locator('#audit-name-error')).toContainText(/Name is required\./i);
+  await expect(page.getByRole('textbox', { name: 'Email', exact: true })).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#audit-email-error')).toContainText(/Email is required\./i);
+  await expect(page.getByLabel('Name')).toBeFocused();
+});
+
 for (const concept of concepts) {
   test(`${concept.name} valid no-JavaScript contact form cannot submit, navigate, or send data`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 900 } });

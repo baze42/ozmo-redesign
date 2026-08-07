@@ -390,6 +390,7 @@ test('concept 3 pages include required website care and redesign content', () =>
     'Five signs your website is costing you good leads',
     'What to fix before you start a redesign',
     'What a healthy website care plan should include',
+    'How service pages help the right customers take the next step',
     'Why conversion paths matter more than visual polish alone',
     'How follow-up keeps good website inquiries from going quiet',
   ]) {
@@ -468,6 +469,23 @@ test('concept 3 forms use JavaScript-enabled submission with a disabled source s
     assert.match(html3(page), /<form\b[^>]*data-ozmo-form=/i, `${page} should opt into OZMO form behavior`);
     assert.match(html3(page), /<button\b[^>]*data-enhanced-submit[^>]*disabled[^>]*type=["']button["']/i, `${page} should keep source submission disabled until JavaScript enhancement`);
     assert.match(html3(page), /data-form-status/i, `${page} should expose a form status message`);
+    assert.match(html3(page), /<noscript>\s*<p>Form submissions are unavailable until JavaScript and an approved endpoint are configured\.\s*<\/p>\s*<\/noscript>/i, `${page} should explain why source submission is unavailable`);
+  }
+});
+
+test('concept 3 source forms associate every validated field with an accessible error message', () => {
+  const fieldsByPage = {
+    [pages.audit]: ['audit-name', 'audit-email', 'audit-company', 'audit-website', 'audit-problem', 'audit-timeline'],
+    [pages.contact]: ['contact-name', 'contact-email', 'contact-company', 'contact-website', 'contact-reason', 'contact-message'],
+  };
+
+  for (const [page, fields] of Object.entries(fieldsByPage)) {
+    const markup = html3(page);
+    for (const id of fields) {
+      const name = id.replace(/^(?:audit|contact)-/, '');
+      assert.match(markup, new RegExp(`<(?:input|select|textarea)\\b[^>]*id=["']${id}["'][^>]*aria-describedby=["']${id}-error["']`, 'i'), `${page} ${id} should describe its error region`);
+      assert.match(markup, new RegExp(`<p\\b[^>]*id=["']${id}-error["'][^>]*data-error-for=["']${name}["'][^>]*`, 'i'), `${page} ${id} should have an associated error region`);
+    }
   }
 });
 

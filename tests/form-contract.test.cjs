@@ -156,6 +156,23 @@ test('concept 3 source forms keep no-JavaScript submission explicitly unavailabl
     assert.match(submitButton, /\bdisabled\b/i, `${page} should keep the source submission control disabled without JavaScript`);
     assert.match(html, /<p\b[^>]*class="form-status"[^>]*role="status"/i, `${page} status should have status semantics`);
     assert.match(html, /<p\b[^>]*class="error-message"[^>]*role="alert"/i, `${page} errors should have alert semantics`);
+    assert.match(html, /<noscript>\s*<p>Form submissions are unavailable until JavaScript and an approved endpoint are configured\.\s*<\/p>\s*<\/noscript>/i, `${page} should explain why its source controls are disabled`);
+  }
+});
+
+test('concept 3 source forms provide real field-level error associations', () => {
+  const fieldsByPage = {
+    'site-audit.html': ['audit-name', 'audit-email', 'audit-company', 'audit-website', 'audit-problem', 'audit-timeline'],
+    'contact.html': ['contact-name', 'contact-email', 'contact-company', 'contact-website', 'contact-reason', 'contact-message'],
+  };
+
+  for (const [page, fields] of Object.entries(fieldsByPage)) {
+    const html = fs.readFileSync(path.join(concept3Root, page), 'utf8');
+    for (const id of fields) {
+      const name = id.replace(/^(?:audit|contact)-/, '');
+      assert.match(html, new RegExp(`<(?:input|select|textarea)\\b[^>]*id=["']${id}["'][^>]*aria-describedby=["']${id}-error["']`, 'i'), `${page} ${id} should identify its error description`);
+      assert.match(html, new RegExp(`<p\\b[^>]*id=["']${id}-error["'][^>]*data-error-for=["']${name}["'][^>]*`, 'i'), `${page} ${id} should expose a matching error message`);
+    }
   }
 });
 
@@ -236,9 +253,21 @@ test('concept 3 enhanced forms render errors and keep static submissions network
     },
     setAttribute() {},
   };
+  const fieldState = new Map();
+  let focusedField = null;
+  const field = (name, type, label) => ({
+    name,
+    type,
+    id: name,
+    getAttribute: (attribute) => attribute === 'data-label' ? label : null,
+    hasAttribute: (attribute) => attribute === 'required',
+    setAttribute(attribute, value) { fieldState.set(`${name}:${attribute}`, value); },
+    removeAttribute(attribute) { fieldState.delete(`${name}:${attribute}`); },
+    focus() { focusedField = name; },
+  });
   const fields = [
-    { name: 'name', type: 'text', id: 'name', getAttribute: (name) => name === 'data-label' ? 'Name' : null, hasAttribute: (name) => name === 'required' },
-    { name: 'email', type: 'email', id: 'email', getAttribute: (name) => name === 'data-label' ? 'Email' : null, hasAttribute: (name) => name === 'required' },
+    field('name', 'text', 'Name'),
+    field('email', 'email', 'Email'),
   ];
   let resetCalls = 0;
   const form = {
@@ -280,6 +309,9 @@ test('concept 3 enhanced forms render errors and keep static submissions network
     assert.equal(formError.textContent, 'Name is required. Enter a valid email address.');
     assert.equal(status.textContent, '');
     assert.equal(fetchCalls, 0);
+    assert.equal(fieldState.get('name:aria-invalid'), 'true');
+    assert.equal(fieldState.get('email:aria-invalid'), 'true');
+    assert.equal(focusedField, 'name');
 
     values.name = 'Pat Owner';
     values.email = 'pat@example.com';
@@ -290,6 +322,8 @@ test('concept 3 enhanced forms render errors and keep static submissions network
     assert.equal(resetCalls, 1);
     assert.equal(button.disabled, false);
     assert.ok(!classes.has('is-loading'));
+    assert.equal(fieldState.has('name:aria-invalid'), false);
+    assert.equal(fieldState.has('email:aria-invalid'), false);
   } finally {
     globalThis.FormData = originalFormData;
     globalThis.setTimeout = originalSetTimeout;

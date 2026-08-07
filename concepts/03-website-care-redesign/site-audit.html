@@ -81,7 +81,8 @@
         <form data-ozmo-form="audit" method="post" action="">
           <div class="form-field">
             <label for="audit-name">Name</label
-            ><input id="audit-name" name="name" required autocomplete="name" />
+            ><input id="audit-name" name="name" required autocomplete="name" aria-describedby="audit-name-error" />
+            <p class="field-error" id="audit-name-error" data-error-for="name" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="audit-email">Email</label
@@ -91,7 +92,9 @@
               type="email"
               required
               autocomplete="email"
+              aria-describedby="audit-email-error"
             />
+            <p class="field-error" id="audit-email-error" data-error-for="email" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="audit-company">Company</label
@@ -100,7 +103,9 @@
               name="company"
               required
               autocomplete="organization"
+              aria-describedby="audit-company-error"
             />
+            <p class="field-error" id="audit-company-error" data-error-for="company" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="audit-website">Website URL</label
@@ -110,7 +115,9 @@
               type="url"
               required
               placeholder="https://"
+              aria-describedby="audit-website-error"
             />
+            <p class="field-error" id="audit-website-error" data-error-for="website" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="audit-problem"
@@ -120,7 +127,9 @@
               name="problem"
               rows="4"
               required
+              aria-describedby="audit-problem-error"
             ></textarea>
+            <p class="field-error" id="audit-problem-error" data-error-for="problem" role="alert"></p>
           </div>
           <fieldset>
             <legend>Services you are interested in</legend>
@@ -156,12 +165,13 @@
           </fieldset>
           <div class="form-field">
             <label for="audit-timeline">Timeline</label
-            ><select id="audit-timeline" name="timeline" required>
+            ><select id="audit-timeline" name="timeline" required aria-describedby="audit-timeline-error">
               <option value="">Select a timeline</option>
               <option>Ready to start soon</option>
               <option>Planning the next few months</option>
               <option>Researching options</option>
             </select>
+            <p class="field-error" id="audit-timeline-error" data-error-for="timeline" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="audit-notes">Notes</label
@@ -174,6 +184,7 @@
             aria-live="polite"
           ></p>
           <p class="error-message" data-form-error role="alert"></p>
+          <noscript><p>Form submissions are unavailable until JavaScript and an approved endpoint are configured.</p></noscript>
           <button
             class="button button-primary"
             data-enhanced-submit

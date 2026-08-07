@@ -94,6 +94,24 @@ test('concept 2 home uses Lucide-style line icons where they clarify local growt
   assert.ok((html.match(/aria-hidden="true"/g) || []).length >= 12, 'decorative icons should be hidden from assistive technology');
 });
 
+test('concept 3 home uses Lucide-style icons and website-care treatments in its markup', () => {
+  const html = read('concepts/03-website-care-redesign/index.html');
+  const outcomeGrid = html.match(/<div class="outcome-grid">([\s\S]*?)<\/div>/i)?.[1] ?? '';
+  const serviceGrid = html.match(/<div class="service-grid">([\s\S]*?)<\/div>/i)?.[1] ?? '';
+  const redesignPath = html.match(/<ol class="redesign-path">([\s\S]*?)<\/ol>/i)?.[1] ?? '';
+  const standards = html.match(/<div class="standards-grid">([\s\S]*?)<\/div>/i)?.[1] ?? '';
+
+  assert.equal((outcomeGrid.match(/class="line-icon"/g) || []).length, 3, 'outcomes should each include a line icon');
+  assert.equal((serviceGrid.match(/class="line-icon"/g) || []).length, 4, 'services should each include a line icon');
+  assert.equal((redesignPath.match(/class="stage-icon"/g) || []).length, 5, 'redesign path stages should each include a line icon');
+  assert.match(standards, /class="[^"]*care-standard[^"]*"/i, 'care standards treatment should be used in markup');
+  assert.match(standards, /class="[^"]*launch-readiness[^"]*"/i, 'launch readiness treatment should be used in markup');
+  assert.match(redesignPath, /class="[^"]*conversion-path[^"]*"/i, 'conversion path treatment should be used in markup');
+  assert.match(redesignPath, /class="[^"]*maintenance-rhythm[^"]*"/i, 'maintenance rhythm treatment should be used in markup');
+  assert.ok((html.match(/<svg\b[^>]*fill="none"[^>]*stroke="currentColor"/g) || []).length >= 12, 'icons should use inline line SVGs with currentColor strokes');
+  assert.ok((html.match(/aria-hidden="true"/g) || []).length >= 12, 'decorative icons should be hidden from assistive technology');
+});
+
 test('implemented concepts have copied OZMO logo assets', () => {
   for (const concept of concepts) {
     for (const logo of requiredLogos) {

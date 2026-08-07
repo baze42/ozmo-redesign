@@ -69,9 +69,13 @@
     return { ok: true, staticMode: false };
   }
 
-  function renderErrors(form, errors) {
+  function renderErrors(form, errors, fields) {
     for (const message of form.querySelectorAll('[data-error-for]')) {
       message.textContent = errors[message.getAttribute('data-error-for')] || '';
+    }
+    for (const field of fields) {
+      if (errors[field.name]) field.element.setAttribute('aria-invalid', 'true');
+      else field.element.removeAttribute('aria-invalid');
     }
     const summary = Object.values(errors).join(' ');
     for (const message of form.querySelectorAll('[data-form-error]')) {
@@ -91,6 +95,7 @@
     return Array.from(controls)
       .filter((element) => element.name && !['button', 'submit', 'reset', 'checkbox', 'radio'].includes(element.type))
       .map((element) => ({
+        element,
         name: element.name,
         label: labelFor(form, element),
         required: element.hasAttribute('required'),
@@ -134,11 +139,15 @@
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (form.dataset.submitting === 'true') return;
-        const result = validateFields(fieldsFor(form), formDataToObject(new root.FormData(form)));
-        renderErrors(form, result.errors);
+        const fields = fieldsFor(form);
+        const result = validateFields(fields, formDataToObject(new root.FormData(form)));
+        renderErrors(form, result.errors, fields);
         const status = form.querySelector('[data-form-status]');
         if (status) status.textContent = '';
-        if (!result.valid) return;
+        if (!result.valid) {
+          fields.find((field) => result.errors[field.name])?.element.focus();
+          return;
+        }
         await runSubmit(form, FORM_ENDPOINTS[form.getAttribute('data-ozmo-form')] || '');
       });
     }

@@ -64,7 +64,9 @@
               name="name"
               required
               autocomplete="name"
+              aria-describedby="contact-name-error"
             />
+            <p class="field-error" id="contact-name-error" data-error-for="name" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="contact-email">Email</label
@@ -74,7 +76,9 @@
               type="email"
               required
               autocomplete="email"
+              aria-describedby="contact-email-error"
             />
+            <p class="field-error" id="contact-email-error" data-error-for="email" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="contact-company">Company</label
@@ -83,7 +87,9 @@
               name="company"
               required
               autocomplete="organization"
+              aria-describedby="contact-company-error"
             />
+            <p class="field-error" id="contact-company-error" data-error-for="company" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="contact-website">Website URL</label
@@ -92,11 +98,13 @@
               name="website"
               type="url"
               placeholder="https://"
+              aria-describedby="contact-website-error"
             />
+            <p class="field-error" id="contact-website-error" data-error-for="website" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="contact-reason">Reason for reaching out</label
-            ><select id="contact-reason" name="reason" required>
+            ><select id="contact-reason" name="reason" required aria-describedby="contact-reason-error">
               <option value="">Select a reason</option>
               <option>Website redesign</option>
               <option>Website care</option>
@@ -104,6 +112,7 @@
               <option>Marketing or follow-up</option>
               <option>Not sure yet</option>
             </select>
+            <p class="field-error" id="contact-reason-error" data-error-for="reason" role="alert"></p>
           </div>
           <div class="form-field">
             <label for="contact-message">Message</label
@@ -112,7 +121,9 @@
               name="message"
               rows="6"
               required
+              aria-describedby="contact-message-error"
             ></textarea>
+            <p class="field-error" id="contact-message-error" data-error-for="message" role="alert"></p>
           </div>
           <p
             class="form-status"
@@ -121,6 +132,7 @@
             aria-live="polite"
           ></p>
           <p class="error-message" data-form-error role="alert"></p>
+          <noscript><p>Form submissions are unavailable until JavaScript and an approved endpoint are configured.</p></noscript>
           <button
             class="button button-primary"
             data-enhanced-submit

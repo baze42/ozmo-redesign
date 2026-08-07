@@ -119,6 +119,13 @@ test('concept 3 CSS implements the website care redesign design contract', () =>
   assert.doesNotMatch(concept3Css, /blur\(|glassmorphism|orb|bokeh/i);
 });
 
+test('concept 3 visibly distinguishes disabled source submit controls', () => {
+  const disabledButton = concept3Css.match(/button:disabled\s*\{([^}]*)\}/)?.[1] ?? '';
+  assert.notEqual(disabledButton, '', 'Concept 3 should style disabled buttons explicitly');
+  assert.match(disabledButton, /cursor:\s*not-allowed\s*;/, 'disabled buttons should not look interactive');
+  assert.match(disabledButton, /opacity:\s*0\.[0-9]+\s*;/, 'disabled buttons should have a subdued visual state');
+});
+
 test('concept 3 anchored insight cards clear the sticky header', () => {
   assert.match(concept3Css, /\.article-grid article\[id\]\s*\{[^}]*scroll-margin-top:\s*(?:9|10|11|12)rem\s*;/is);
 });
