@@ -7,9 +7,12 @@ const formModule = require(path.resolve(__dirname, '../concepts/01-digital-opera
 const conceptRoot = path.resolve(__dirname, '../concepts/01-digital-operations-partner');
 const concept2Module = require(path.resolve(__dirname, '../concepts/02-local-growth-studio/assets/js/site.js'));
 const concept2Root = path.resolve(__dirname, '../concepts/02-local-growth-studio');
+const concept3Module = require(path.resolve(__dirname, '../concepts/03-website-care-redesign/assets/js/site.js'));
+const concept3Root = path.resolve(__dirname, '../concepts/03-website-care-redesign');
 const formConcepts = [
   { label: 'Concept 1', module: formModule, root: conceptRoot },
   { label: 'Concept 2', module: concept2Module, root: concept2Root },
+  { label: 'Concept 3', module: concept3Module, root: concept3Root },
 ];
 
 test('validateFields reports required email and URL errors', () => {
@@ -137,6 +140,22 @@ test('concept 2 source forms keep no-JavaScript submission explicitly unavailabl
     assert.match(submitButton, /\bdisabled\b/i, `${page} should keep the source submission control disabled without JavaScript`);
     assert.match(html, /<p class="form-status"[^>]*role="status"/i, `${page} status should have status semantics`);
     assert.match(html, /<p class="error-message"[^>]*role="alert"/i, `${page} errors should have alert semantics`);
+  }
+});
+
+test('concept 3 source forms keep no-JavaScript submission explicitly unavailable', () => {
+  for (const page of ['site-audit.html', 'contact.html']) {
+    const html = fs.readFileSync(path.join(concept3Root, page), 'utf8');
+    const form = html.match(/<form\b[^>]*data-ozmo-form=[^>]*>/i)?.[0] ?? '';
+    const submitButton = html.match(/<button\b[^>]*data-enhanced-submit[^>]*>/i)?.[0] ?? '';
+    assert.doesNotMatch(form, /\bnovalidate\b/i, `${page} should preserve native validation before JavaScript runs`);
+    assert.match(form, /\bmethod=["']post["']/i, `${page} should use POST when JavaScript is unavailable`);
+    assert.match(form, /\baction=["']["']/i, `${page} should keep no-JavaScript form data on the current page until a production endpoint is configured`);
+    assert.doesNotMatch(form, /\baction=["']mailto:/i, `${page} should not expose form data in a mailto URL or guess a recipient`);
+    assert.match(submitButton, /\btype=["']button["']/i, `${page} should not expose a native submit control before JavaScript runs`);
+    assert.match(submitButton, /\bdisabled\b/i, `${page} should keep the source submission control disabled without JavaScript`);
+    assert.match(html, /<p\b[^>]*class="form-status"[^>]*role="status"/i, `${page} status should have status semantics`);
+    assert.match(html, /<p\b[^>]*class="error-message"[^>]*role="alert"/i, `${page} errors should have alert semantics`);
   }
 });
 

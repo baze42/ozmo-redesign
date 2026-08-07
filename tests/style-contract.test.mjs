@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const css = fs.readFileSync(path.join(repoRoot, 'concepts/01-digital-operations-partner/assets/css/styles.css'), 'utf8');
 const concept2Css = fs.readFileSync(path.join(repoRoot, 'concepts/02-local-growth-studio/assets/css/styles.css'), 'utf8');
+const concept3Css = fs.readFileSync(path.join(repoRoot, 'concepts/03-website-care-redesign/assets/css/styles.css'), 'utf8');
 
 test('CSS includes approved OZMO design-system tokens', () => {
   for (const token of ['#1F3A5F', '#C1622D', '#F5EFE6', '#FBF8F2', '#F05000', 'Fraunces', 'Karla', 'IBM Plex Mono']) {
@@ -106,4 +107,18 @@ test('concept 2 styles skip links and local-growth line icons', () => {
 
 test('concept 2 anchored insight cards clear the sticky header', () => {
   assert.match(concept2Css, /\.article-grid article\[id\]\s*\{[^}]*scroll-margin-top:\s*(?:9|10|11|12)rem\s*;/is);
+});
+
+test('concept 3 CSS implements the website care redesign design contract', () => {
+  for (const token of ['#1F3A5F', '#C1622D', '#F5EFE6', '#FBF8F2', '#F05000', 'Fraunces', 'Karla', 'IBM Plex Mono']) {
+    assert.match(concept3Css, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `Concept 3 CSS should include ${token}`);
+  }
+  assert.match(concept3Css, /redesign-path|care-standard|launch-readiness|conversion-path|maintenance-rhythm/i);
+  assert.match(concept3Css, /html\.js\s+\.nav-menu\s*\{[^}]*display:\s*none\s*;/);
+  assert.match(concept3Css, /\.line-icon svg\s*\{[^}]*stroke-width:\s*2/is);
+  assert.doesNotMatch(concept3Css, /blur\(|glassmorphism|orb|bokeh/i);
+});
+
+test('concept 3 anchored insight cards clear the sticky header', () => {
+  assert.match(concept3Css, /\.article-grid article\[id\]\s*\{[^}]*scroll-margin-top:\s*(?:9|10|11|12)rem\s*;/is);
 });
