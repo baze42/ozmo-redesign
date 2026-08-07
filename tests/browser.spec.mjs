@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const concepts = [
-  { name: 'Concept 1', path: '/concepts/01-digital-operations-partner', auditButton: /request a site audit/i, screenshotPrefix: 'concept-1-digital-operations' },
+  { name: 'Concept 1', path: '/concepts/01-digital-operations-partner', auditButton: /request a site audit/i, screenshotPrefix: 'concept-1' },
   { name: 'Concept 2', path: '/concepts/02-local-growth-studio', auditButton: /request a site audit/i, screenshotPrefix: 'concept-2-local-growth' },
 ];
 const pages = ['index.html', 'services.html', 'site-audit.html', 'about.html', 'insights.html', 'contact.html'];
