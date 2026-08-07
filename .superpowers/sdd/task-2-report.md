@@ -144,3 +144,41 @@ Result: both commands passed with 15 tests passed and 0 failed.
 - Rewrote public operational copy and page descriptions to use `we` and `you` language, including service headings and audit/contact flow copy.
 - Confirmed no forbidden third-person patterns remain in Concept 1 public body or meta copy.
 - `git diff --check` passed; existing logo alt text, page titles, navigation labels, `Talk to OZMO`, `Contact OZMO`, and `About | OZMO Digital` title treatment remain intact.
+
+## Fix: Remaining Insights Voice Compliance
+
+### RED
+
+Command:
+
+```bash
+node --test tests/content-contract.test.mjs
+```
+
+Result: 9 tests run, 8 passed, 1 failed.
+
+The focused Insights voice assertion failed as expected on the existing `service-business owners` meta description. The failure output also confirmed the remaining targeted phrases: `business owners`, `Care is more than emergency fixes`, and `Speed matters`.
+
+### GREEN
+
+Commands:
+
+```bash
+node --test tests/content-contract.test.mjs tests/static-contract.test.mjs
+npm test
+git diff --check
+```
+
+Result: both test commands passed with 18 tests passed and 0 failed. `git diff --check` passed with no whitespace errors.
+
+### Files Changed
+
+- `tests/content-contract.test.mjs`
+- `concepts/01-digital-operations-partner/insights.html`
+
+### Self-Review
+
+- Added focused Insights-only assertions rejecting `service-business owners`, `business owners`, `Care is more than emergency fixes`, and `Speed matters` from public body/meta copy.
+- Rewrote the Insights meta description, hero heading/subcopy, website-care summary, and lead-follow-up summary in direct `you` language.
+- Preserved the required article titles, topic filters and anchors, image reference, alt text, and audit CTA.
+- Full `npm test` passed, and `git diff --check` is clean.

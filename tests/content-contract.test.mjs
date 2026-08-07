@@ -164,3 +164,15 @@ test('public copy avoids remaining faceless voice phrases', () => {
     }
   }
 });
+
+test('Insights public copy speaks directly to you', () => {
+  const text = publicCopy(html(pages.insights));
+  for (const pattern of [
+    /service-business owners/i,
+    /business owners/i,
+    /Care is more than emergency fixes/i,
+    /Speed matters/i,
+  ]) {
+    assert.doesNotMatch(text, pattern, `insights.html should use direct we/you voice instead of ${pattern}`);
+  }
+});
