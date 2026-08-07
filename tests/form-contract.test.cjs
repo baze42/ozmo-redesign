@@ -43,3 +43,13 @@ test('validateFields accepts complete audit values', () => {
 test('FORM_ENDPOINTS default to empty strings for static no-network review', () => {
   assert.deepEqual(formModule.FORM_ENDPOINTS, { audit: '', contact: '' });
 });
+
+test('formDataToObject preserves repeated form values as arrays', () => {
+  const formData = new FormData();
+  formData.append('services', 'Website design and redesign');
+  formData.append('services', 'Automation, CRM, and email workflows');
+
+  assert.deepEqual(formModule.OZMOForms.formDataToObject(formData), {
+    services: ['Website design and redesign', 'Automation, CRM, and email workflows'],
+  });
+});

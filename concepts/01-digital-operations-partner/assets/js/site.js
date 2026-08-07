@@ -43,6 +43,20 @@
     return { valid: Object.keys(errors).length === 0, errors };
   }
 
+  function formDataToObject(formData) {
+    const values = {};
+    for (const [name, value] of formData.entries()) {
+      if (!(name in values)) {
+        values[name] = value;
+      } else if (Array.isArray(values[name])) {
+        values[name].push(value);
+      } else {
+        values[name] = [values[name], value];
+      }
+    }
+    return values;
+  }
+
   async function submitForm(form, options = {}) {
     const endpoint = options.endpoint || '';
     if (!endpoint) {
@@ -52,7 +66,7 @@
     const response = await root.fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.fromEntries(new root.FormData(form))),
+      body: JSON.stringify(formDataToObject(new root.FormData(form))),
     });
     if (!response.ok) {
       throw new Error('Form submission failed.');
@@ -127,5 +141,8 @@
     enhanceForms(root.document);
   }
 
-  return { FORM_ENDPOINTS, OZMOForms: { validateFields, submitForm, enhanceForms, enhanceNavigation } };
+  return {
+    FORM_ENDPOINTS,
+    OZMOForms: { validateFields, formDataToObject, submitForm, enhanceForms, enhanceNavigation },
+  };
 }));

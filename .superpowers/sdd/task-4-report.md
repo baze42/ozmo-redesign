@@ -59,3 +59,48 @@ Results:
 ## Concerns
 
 None. No live endpoint is configured by design; configured-endpoint network behavior is handled but not exercised against a real service.
+
+## Fix: Preserve Repeated Form Values
+
+### RED Evidence
+
+Added a focused contract test for repeated `services` fields:
+
+```sh
+node --test tests/form-contract.test.cjs
+```
+
+Result: 3 passed, 1 failed. The new test failed with `TypeError: formModule.OZMOForms.formDataToObject is not a function`, confirming the helper was not yet exported.
+
+### GREEN Evidence
+
+Commands:
+
+```sh
+node --test tests/form-contract.test.cjs tests/content-contract.test.mjs tests/static-contract.test.mjs tests/style-contract.test.mjs
+npm test
+git diff --check
+```
+
+Results:
+
+- Targeted form, content, static, and style suite: 26 passed, 0 failed.
+- `npm test`: 26 passed, 0 failed.
+- `git diff --check`: no whitespace errors.
+
+### Files Changed
+
+- `concepts/01-digital-operations-partner/assets/js/site.js`
+- `tests/form-contract.test.cjs`
+- `.superpowers/sdd/task-4-report.md`
+
+### Self-Review
+
+- `formDataToObject` leaves single values as strings and promotes repeated names to arrays in encounter order.
+- Configured endpoint submissions now serialize through `formDataToObject` instead of `Object.fromEntries`.
+- The helper is exported under `OZMOForms` for direct contract coverage and reuse.
+- Existing static-mode behavior and all prior contract tests remain green.
+
+### Concerns
+
+None. No live endpoint is configured by design; the repeated-value payload behavior is covered by the focused unit contract.
