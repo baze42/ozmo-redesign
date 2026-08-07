@@ -85,3 +85,33 @@ None for Task 1. Page content, generated image targets, and deeper interaction b
 ### Concerns, if any
 
 None.
+
+## Review Fix 2: Task 1 Findings
+
+### Test commands and results
+
+- `node --test tests/static-contract.test.mjs` (RED, after adding the focused assertions)
+  - FAIL: 4 passed, 2 failed. The new assertions correctly identified that the CSS import did not include Karla and that the site-audit primary CTA still targeted `contact.html`.
+- `node --test tests/static-contract.test.mjs` (GREEN, after implementation)
+  - PASS: 6 tests, 0 failures.
+- `npm test` (GREEN, after implementation)
+  - PASS: 6 tests, 0 failures.
+
+### Files changed
+
+- `tests/static-contract.test.mjs`
+- `concepts/01-digital-operations-partner/assets/css/styles.css`
+- `concepts/01-digital-operations-partner/site-audit.html`
+- `.superpowers/sdd/task-1-report.md`
+
+### Self-review
+
+- The static contract now checks the Google Fonts import URL for Karla, not only the visible body font declaration.
+- The static contract identifies the main-content `Request a site audit` CTA and rejects `contact.html` as its destination.
+- The stylesheet loads Karla alongside Fraunces.
+- The site-audit CTA now points to `#main-content`, keeping the scaffold action on the audit page without inventing an unfinished form flow.
+- No unrelated files were modified.
+
+### Concerns, if any
+
+None.

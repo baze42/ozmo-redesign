@@ -63,13 +63,17 @@ test('concept 1 has copied OZMO logo assets', () => {
 
 test('concept 1 typography and page surfaces follow the design contract', () => {
   const css = read('concepts/01-digital-operations-partner/assets/css/styles.css');
+  assert.match(css, /@import[^)]*family=Karla:/i);
   assert.match(css, /--font-display\s*:\s*[^;]*Fraunces/i);
   assert.match(css, /h1\s*,\s*h2[^{}]*\{[^}]*font-family:\s*var\(--font-display\)/is);
   assert.match(css, /body\s*\{[^}]*background:\s*(?:var\(--cream\)|#F5EFE6)/is);
 });
 
-test('site audit hero contains the primary lead action', () => {
+test('site audit primary lead action stays on the audit page', () => {
   const html = read('concepts/01-digital-operations-partner/site-audit.html');
   const mainContent = html.match(/<main\b[^>]*>[\s\S]*?<\/main>/i)?.[0] ?? '';
-  assert.match(mainContent, /class="button button-primary"[^>]*>\s*Request a site audit\s*</i);
+  const cta = mainContent.match(/<a\b(?=[^>]*class="button button-primary")(?=[^>]*>\s*Request a site audit\s*<\/a>)[^>]*>/i)?.[0] ?? '';
+  const href = cta.match(/href="([^"]+)"/i)?.[1];
+  assert.ok(href, 'site audit primary CTA should have an href');
+  assert.notEqual(href, 'contact.html');
 });
