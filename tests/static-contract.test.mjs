@@ -8,6 +8,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const concepts = [
   { slug: '01-digital-operations-partner', label: 'Digital Operations Partner' },
   { slug: '02-local-growth-studio', label: 'Local Growth Studio' },
+  { slug: '03-website-care-redesign', label: 'Website Care + Redesign Specialist' },
 ];
 const requiredPages = ['index.html', 'services.html', 'site-audit.html', 'about.html', 'insights.html', 'contact.html'];
 const requiredLogos = ['ozmo-logo-cream.png', 'ozmo-logo-full.png', 'ozmo-logo-ink.png', 'ozmo-logo-navy.png', 'ozmo-logo-white.png', 'ozmo-mark.png'];
@@ -27,13 +28,18 @@ test('root comparison hub exists and links concept 1 without presenting itself a
   assert.doesNotMatch(html, /final OZMO website/i);
 });
 
-test('concept 2 is linked from the comparison hub and concept 3 remains queued', () => {
+test('concept 2 is linked from the comparison hub', () => {
   const html = read('index.html');
   assert.match(html, /concepts\/02-local-growth-studio\/index\.html/);
   assert.match(html, /Local Growth Studio/i);
+});
+
+test('concept 3 is linked from the comparison hub', () => {
+  const html = read('index.html');
+  assert.match(html, /concepts\/03-website-care-redesign\/index\.html/);
   assert.match(html, /Website Care \+ Redesign Specialist/i);
   assert.match(html, /Concept 03/i);
-  assert.match(html, /Coming next/i);
+  assert.doesNotMatch(html, /Coming next/i);
 });
 
 test('implemented concepts contain the required deployable pages and self-contained assets', () => {
