@@ -303,6 +303,7 @@ h3 {
   grid-template-columns: repeat(2, 1fr);
   gap: 18px;
   padding: clamp(24px, 4vw, 42px);
+  scroll-margin-top: 110px;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--paper);
