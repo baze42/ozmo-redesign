@@ -143,9 +143,11 @@ test('public body and meta copy uses OZMO first-person voice', () => {
   }
 });
 
-test('Task 2 forms stay content-only before Task 4 behavior exists', () => {
+test('Task 4 forms submit through progressive enhancement', () => {
   for (const page of [pages.audit, pages.contact]) {
-    assert.doesNotMatch(html(page), /<button\b[^>]*type=["']submit["']/i, `${page} should not submit before Task 4`);
+    assert.match(html(page), /<form\b[^>]*data-ozmo-form=/i, `${page} should opt into OZMO form behavior`);
+    assert.match(html(page), /<button\b[^>]*type=["']submit["']/i, `${page} should use a submit button`);
+    assert.match(html(page), /data-form-status/i, `${page} should expose a form status message`);
   }
 });
 
