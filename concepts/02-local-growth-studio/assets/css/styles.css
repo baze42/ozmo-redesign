@@ -91,6 +91,7 @@ p + p { margin-top: 1rem; }
 }
 .site-header nav a:hover::after, .site-header nav a[aria-current="page"]::after { transform: scaleX(1); }
 .site-header nav a[aria-current="page"] { color: var(--terracotta-700); }
+.nav-toggle { display: none; }
 
 main > section {
   width: min(1180px, calc(100% - 3rem));
@@ -292,6 +293,18 @@ fieldset input { width: auto; min-height: auto; margin-right: 0.45rem; accent-co
 @media (max-width: 760px) {
   .site-header { gap: 0.75rem; min-height: 4.75rem; padding-inline: 1rem; }
   .brand img { width: 7.5rem; }
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--navy);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--navy);
+    font-weight: 700;
+  }
   .site-header nav { gap: 0.45rem 0.9rem; }
   .site-header nav a { font-size: 0.88rem; }
   html.js .nav-menu { display: none; }

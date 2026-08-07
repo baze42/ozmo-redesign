@@ -136,6 +136,65 @@ test('concept 2 source forms keep no-JavaScript submission explicitly unavailabl
   }
 });
 
+test('concept 2 enhanced forms announce combined validation errors in the form-level error region', async () => {
+  const listeners = new Map();
+  const values = { name: '', email: 'invalid-email' };
+  const fieldErrors = [
+    { getAttribute: () => 'name', textContent: '' },
+    { getAttribute: () => 'email', textContent: '' },
+  ];
+  const formError = { textContent: '' };
+  const status = { textContent: '' };
+  const fields = [
+    { name: 'name', type: 'text', id: 'name', getAttribute: (name) => name === 'data-label' ? 'Name' : null, hasAttribute: (name) => name === 'required' },
+    { name: 'email', type: 'email', id: 'email', getAttribute: (name) => name === 'data-label' ? 'Email' : null, hasAttribute: (name) => name === 'required' },
+  ];
+  const form = {
+    dataset: {},
+    setAttribute() {},
+    getAttribute: () => 'audit',
+    querySelectorAll(selector) {
+      if (selector === '[data-enhanced-submit]') return [];
+      if (selector === '[data-field]') return fields;
+      if (selector === '[data-error-for]') return fieldErrors;
+      if (selector === '[data-form-error]') return [formError];
+      throw new Error(`Unexpected selector: ${selector}`);
+    },
+    querySelector(selector) {
+      if (selector === '[data-form-status]') return status;
+      if (selector === '[type="submit"]') return null;
+      return null;
+    },
+    addEventListener(name, listener) { listeners.set(name, listener); },
+    reset() {},
+  };
+  const documentRef = { querySelectorAll: () => [form] };
+  const originalFormData = globalThis.FormData;
+  const originalSetTimeout = globalThis.setTimeout;
+  globalThis.FormData = class {
+    entries() { return Object.entries(values)[Symbol.iterator](); }
+  };
+  globalThis.setTimeout = (callback) => { callback(); return 0; };
+
+  try {
+    concept2Module.OZMOForms.enhanceForms(documentRef);
+    await listeners.get('submit')({ preventDefault() {} });
+
+    assert.equal(fieldErrors[0].textContent, 'Name is required.');
+    assert.equal(fieldErrors[1].textContent, 'Enter a valid email address.');
+    assert.equal(formError.textContent, 'Name is required. Enter a valid email address.');
+    assert.equal(status.textContent, '');
+
+    values.name = 'Pat Owner';
+    values.email = 'pat@example.com';
+    await listeners.get('submit')({ preventDefault() {} });
+    assert.equal(formError.textContent, '');
+  } finally {
+    globalThis.FormData = originalFormData;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
 test('concept 2 enhancement creates a mobile navigation control from its source navigation', () => {
   const classes = new Set();
   const attributes = new Map();

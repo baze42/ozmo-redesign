@@ -80,6 +80,10 @@
       const name = message.getAttribute('data-error-for');
       message.textContent = errors[name] || '';
     }
+    const summary = Object.values(errors).join(' ');
+    for (const message of form.querySelectorAll('[data-form-error]')) {
+      message.textContent = summary;
+    }
   }
 
   function labelFor(form, field) {

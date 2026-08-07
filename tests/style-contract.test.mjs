@@ -85,3 +85,13 @@ test('concept 2 CSS implements the local growth design contract', () => {
   assert.match(concept2Css, /html\.js\s+\.nav-menu\s*\{[^}]*display:\s*none\s*;/);
   assert.doesNotMatch(concept2Css, /blur\(|glassmorphism|orb|bokeh/i);
 });
+
+test('concept 2 navigation toggle has desktop-hidden and mobile control styling', () => {
+  const defaultToggle = concept2Css.match(/\.nav-toggle\s*\{([^}]*)\}/)?.[1] ?? '';
+  assert.match(defaultToggle, /display:\s*none\s*;/, 'the JavaScript-inserted toggle should be hidden by default');
+
+  const mobileStyles = concept2Css.match(/@media\s*\(max-width:\s*760px\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+  const mobileToggle = mobileStyles.match(/\.nav-toggle\s*\{([^}]*)\}/)?.[1] ?? '';
+  assert.match(mobileToggle, /display:\s*(?:inline-flex|flex)\s*;/, 'the toggle should be visible on mobile');
+  assert.match(mobileToggle, /(?:background|border|color):\s*[^;]+;/, 'the mobile toggle should have a visible control treatment');
+});
