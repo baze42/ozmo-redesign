@@ -52,6 +52,15 @@ async function completeAudit(page) {
   await page.getByLabel('Notes').fill('Please review service pages and lead capture.');
 }
 
+async function completeContact(page) {
+  await page.getByLabel('Name').fill('Pat Owner');
+  await page.getByRole('textbox', { name: 'Email', exact: true }).fill('pat@example.com');
+  await page.getByLabel('Company').fill('Pat Services');
+  await page.getByLabel('Website URL').fill('https://example.com');
+  await page.getByLabel('Reason for reaching out').selectOption({ label: 'General question' });
+  await page.getByLabel('Message').fill('I need help improving lead follow-up.');
+}
+
 test.beforeAll(async () => {
   server = http.createServer((request, response) => {
     const requested = new URL(request.url, 'http://127.0.0.1').pathname;
@@ -92,7 +101,7 @@ test('navigation works over local HTTP and exposes a keyboard focus indicator', 
   await expect(page.getByRole('heading', { name: /connected digital support/i })).toBeVisible();
 });
 
-test('mobile navigation and native contact validation remain usable with JavaScript disabled', async ({ browser }) => {
+test('mobile navigation and contact fields remain available with JavaScript disabled', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 900 } });
   const page = await context.newPage();
   await gotoPage(page, 'contact.html');
@@ -100,8 +109,28 @@ test('mobile navigation and native contact validation remain usable with JavaScr
   const form = page.locator('[data-ozmo-form="contact"]');
   await expect(form).toHaveAttribute('method', 'post');
   await expect(form).toHaveAttribute('action', '');
-  await page.getByRole('button', { name: 'Send message' }).click();
+  await page.getByLabel('Name').focus();
   await expect.poll(() => form.evaluate((element) => element.matches(':invalid'))).toBe(true);
+  await context.close();
+});
+
+test('valid no-JavaScript contact form cannot submit, navigate, or send data', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 900 } });
+  const page = await context.newPage();
+  const submissions = [];
+  page.on('request', (request) => {
+    if (request.method() === 'POST' || request.resourceType() === 'fetch') submissions.push(request);
+  });
+  await gotoPage(page, 'contact.html');
+  await completeContact(page);
+  const currentUrl = page.url();
+  const submit = page.getByRole('button', { name: 'Send message' });
+  await expect(submit).toBeDisabled();
+  await expect(submit).toHaveAttribute('type', 'button');
+  await submit.evaluate((button) => button.click());
+  await page.waitForTimeout(100);
+  await expect(page).toHaveURL(currentUrl);
+  expect(submissions).toHaveLength(0);
   await context.close();
 });
 

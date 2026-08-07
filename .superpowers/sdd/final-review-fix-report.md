@@ -22,7 +22,7 @@
 ## Implementation Notes
 
 - Mobile navigation now defaults to visible, with collapsed behavior activated only by `html.js`; the external `site.js` enhancement adds the class after it loads, so navigation remains visible if that script is unavailable.
-- Forms retain native validation and `POST` mailto fallbacks without JavaScript. JavaScript adds `novalidate` only when enhancement starts, gives empty live regions visually clipped semantics, and prevents repeated pending submissions.
+- Forms retain native validation but keep submission explicitly unavailable without JavaScript until a production endpoint is approved. JavaScript adds `novalidate` only when enhancement starts, gives empty live regions visually clipped semantics, and prevents repeated pending submissions.
 - WebP derivatives were produced locally with the installed Playwright Chromium canvas encoder. PNG originals remain unchanged.
 
 ## Deployment Concern
@@ -53,3 +53,24 @@ A real production endpoint or approved recipient is required before public deplo
 
 - Both forms now use `method="post" action=""` as the deliberate static fallback. This keeps form data out of a URL and does not invent an OZMO mailbox or third-party recipient.
 - A real production form endpoint or approved recipient must be configured before public deployment. Concept 1 intentionally does not invent either one.
+
+## Final Closure Fix
+
+### RED Evidence
+
+| Command | Result |
+| --- | --- |
+| `node --test tests/form-contract.test.cjs` | FAILED as expected: 2 failures proved source forms still exposed enabled native submit controls and `enhanceForms()` did not activate marked controls. |
+| `npm run test:browser -- --reporter=list -g "valid no-JavaScript contact form cannot submit, navigate, or send data"` | FAILED as expected: the valid no-JavaScript contact form exposed an enabled `type="submit"` button. |
+
+### GREEN Evidence
+
+| Command | Result |
+| --- | --- |
+| `node --test tests/form-contract.test.cjs` | PASSED: 7 tests, 0 failures. |
+| `npm run test:browser -- --reporter=list -g "valid no-JavaScript contact form cannot submit, navigate, or send data\|enhanced static audit submissions show success, reset, and stay offline"` | PASSED: 2 tests, 0 failures. The valid no-JavaScript contact path remains on the same URL with zero observed POST/fetch requests; the JavaScript-enhanced static audit flow still succeeds without a network request. |
+| `npm test` | Initially FAILED on one stale source-`submit` assertion in `tests/content-contract.test.mjs`; the contract was updated to assert the approved disabled source state. |
+| `npm test` | PASSED: 37 tests, 0 failures. |
+| `npm run verify` | PASSED: `OZMO Concept 1 static verification passed.` |
+| `npm run test:browser -- --reporter=list` | PASSED: 12 tests, 0 failures, including the valid no-JavaScript contact no-submit/no-navigation/no-data test. |
+| `git diff --check` | PASSED: no whitespace errors. |

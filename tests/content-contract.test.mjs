@@ -143,10 +143,10 @@ test('public body and meta copy uses OZMO first-person voice', () => {
   }
 });
 
-test('Task 4 forms submit through progressive enhancement', () => {
+test('Task 4 forms use JavaScript-enabled submission with a disabled source state', () => {
   for (const page of [pages.audit, pages.contact]) {
     assert.match(html(page), /<form\b[^>]*data-ozmo-form=/i, `${page} should opt into OZMO form behavior`);
-    assert.match(html(page), /<button\b[^>]*type=["']submit["']/i, `${page} should use a submit button`);
+    assert.match(html(page), /<button\b[^>]*data-enhanced-submit[^>]*disabled[^>]*type=["']button["']/i, `${page} should keep source submission disabled until JavaScript enhancement`);
     assert.match(html(page), /data-form-status/i, `${page} should expose a form status message`);
   }
 });

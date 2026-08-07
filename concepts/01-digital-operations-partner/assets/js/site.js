@@ -111,6 +111,10 @@
     const forms = Array.from(documentRef.querySelectorAll('[data-ozmo-form]'));
     for (const form of forms) {
       form.setAttribute('novalidate', '');
+      for (const button of form.querySelectorAll('[data-enhanced-submit]')) {
+        button.type = 'submit';
+        button.disabled = false;
+      }
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (form.dataset.submitting === 'true') return;
