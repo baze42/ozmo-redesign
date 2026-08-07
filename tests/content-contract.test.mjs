@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const conceptRoot = path.join(repoRoot, 'concepts', '01-digital-operations-partner');
 const concept2Root = path.join(repoRoot, 'concepts', '02-local-growth-studio');
+const concept3Root = path.join(repoRoot, 'concepts', '03-website-care-redesign');
 
 const pages = {
   home: 'index.html',
@@ -23,6 +24,10 @@ function html(page) {
 
 function html2(page) {
   return fs.readFileSync(path.join(concept2Root, page), 'utf8');
+}
+
+function html3(page) {
+  return fs.readFileSync(path.join(concept3Root, page), 'utf8');
 }
 
 function withoutTags(markup) {
@@ -283,6 +288,97 @@ test('concept 2 public copy avoids forbidden proof and draft language', () => {
   ];
   for (const page of Object.values(pages)) {
     const text = withoutTags(html2(page));
+    for (const pattern of forbidden) {
+      assert.doesNotMatch(text, pattern, `${page} should not contain ${pattern}`);
+    }
+  }
+});
+
+test('concept 3 home follows the website care and redesign StoryBrand flow', () => {
+  const text = withoutTags(html3(pages.home));
+  for (const required of [
+    'Turn an outdated website into a clearer path to better leads',
+    'Look current',
+    'Make action easier',
+    'Stay cared for',
+    'Your website should not make people hesitate',
+    'A practical specialist for redesign, care, and clearer lead paths',
+    'Website redesign and message clarity',
+    'Conversion paths and service-page structure',
+    'Website care and maintenance',
+    'Supporting marketing and follow-up',
+    'Request a site audit',
+    'See what needs redesign, repair, or care first',
+    'Launch a clearer website and keep it working',
+  ]) {
+    assert.match(text, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+});
+
+test('concept 3 pages include required website care and redesign content', () => {
+  const audit = withoutTags(html3(pages.audit));
+  for (const required of [
+    'First impression and message clarity',
+    'Mobile usability and speed cues',
+    'Service-page structure',
+    'Call-to-action and inquiry path',
+    'Trust signals and proof readiness',
+    'Care, security, and maintainability',
+    'Content freshness and update rhythm',
+    'What is not working on your website right now?',
+  ]) {
+    assert.match(audit, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+
+  const insights = withoutTags(html3(pages.insights));
+  for (const topic of [
+    'Five signs your website is costing you good leads',
+    'What to fix before you start a redesign',
+    'What a healthy website care plan should include',
+    'Why conversion paths matter more than visual polish alone',
+    'How follow-up keeps good website inquiries from going quiet',
+  ]) {
+    assert.match(insights, new RegExp(topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+});
+
+test('concept 3 services present website care and redesign work in the approved order', () => {
+  const text = withoutTags(html3(pages.services));
+  const ordered = [
+    'Website redesign and message clarity',
+    'Conversion paths and service-page structure',
+    'Website care and maintenance',
+    'Supporting marketing and follow-up',
+  ];
+  let previous = -1;
+  for (const service of ordered) {
+    const index = text.indexOf(service);
+    assert.ok(index > previous, `${service} should appear after the previous service`);
+    previous = index;
+  }
+});
+
+test('concept 3 forms use JavaScript-enabled submission with a disabled source state', () => {
+  for (const page of [pages.audit, pages.contact]) {
+    assert.match(html3(page), /<form\b[^>]*data-ozmo-form=/i, `${page} should opt into OZMO form behavior`);
+    assert.match(html3(page), /<button\b[^>]*data-enhanced-submit[^>]*disabled[^>]*type=["']button["']/i, `${page} should keep source submission disabled until JavaScript enhancement`);
+    assert.match(html3(page), /data-form-status/i, `${page} should expose a form status message`);
+  }
+});
+
+test('concept 3 public copy avoids forbidden proof and draft language', () => {
+  const forbidden = [
+    /lorem ipsum/i,
+    /fake testimonial/i,
+    /fake client/i,
+    /prototype only/i,
+    /todo/i,
+    /tbd/i,
+    /unfinished/i,
+    /verified result/i,
+  ];
+  for (const page of Object.values(pages)) {
+    const text = withoutTags(html3(page));
     for (const pattern of forbidden) {
       assert.doesNotMatch(text, pattern, `${page} should not contain ${pattern}`);
     }
