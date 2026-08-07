@@ -218,6 +218,85 @@ test('concept 2 enhanced forms announce combined validation errors in the form-l
   }
 });
 
+test('concept 3 enhanced forms render errors and keep static submissions network-free', async () => {
+  const listeners = new Map();
+  const values = { name: '', email: 'invalid-email' };
+  const fieldErrors = [
+    { getAttribute: () => 'name', textContent: '' },
+    { getAttribute: () => 'email', textContent: '' },
+  ];
+  const formError = { textContent: '' };
+  const status = { textContent: '' };
+  const classes = new Set();
+  const button = {
+    disabled: false,
+    classList: {
+      add(name) { classes.add(name); },
+      remove(name) { classes.delete(name); },
+    },
+    setAttribute() {},
+  };
+  const fields = [
+    { name: 'name', type: 'text', id: 'name', getAttribute: (name) => name === 'data-label' ? 'Name' : null, hasAttribute: (name) => name === 'required' },
+    { name: 'email', type: 'email', id: 'email', getAttribute: (name) => name === 'data-label' ? 'Email' : null, hasAttribute: (name) => name === 'required' },
+  ];
+  let resetCalls = 0;
+  const form = {
+    dataset: {},
+    setAttribute() {},
+    getAttribute: () => 'audit',
+    querySelectorAll(selector) {
+      if (selector === '[data-enhanced-submit]') return [];
+      if (selector === '[data-field]') return fields;
+      if (selector === '[data-error-for]') return fieldErrors;
+      if (selector === '[data-form-error]') return [formError];
+      throw new Error(`Unexpected selector: ${selector}`);
+    },
+    querySelector(selector) {
+      if (selector === '[data-form-status]') return status;
+      if (selector === '[type="submit"]') return button;
+      return null;
+    },
+    addEventListener(name, listener) { listeners.set(name, listener); },
+    reset() { resetCalls += 1; },
+  };
+  const documentRef = { querySelectorAll: () => [form] };
+  const originalFormData = globalThis.FormData;
+  const originalSetTimeout = globalThis.setTimeout;
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  globalThis.FormData = class {
+    entries() { return Object.entries(values)[Symbol.iterator](); }
+  };
+  globalThis.setTimeout = (callback) => { callback(); return 0; };
+  globalThis.fetch = async () => { fetchCalls += 1; };
+
+  try {
+    concept3Module.OZMOForms.enhanceForms(documentRef);
+    await listeners.get('submit')({ preventDefault() {} });
+
+    assert.equal(fieldErrors[0].textContent, 'Name is required.');
+    assert.equal(fieldErrors[1].textContent, 'Enter a valid email address.');
+    assert.equal(formError.textContent, 'Name is required. Enter a valid email address.');
+    assert.equal(status.textContent, '');
+    assert.equal(fetchCalls, 0);
+
+    values.name = 'Pat Owner';
+    values.email = 'pat@example.com';
+    await listeners.get('submit')({ preventDefault() {} });
+
+    assert.equal(formError.textContent, '');
+    assert.equal(fetchCalls, 0, 'static forms should not issue network requests');
+    assert.equal(resetCalls, 1);
+    assert.equal(button.disabled, false);
+    assert.ok(!classes.has('is-loading'));
+  } finally {
+    globalThis.FormData = originalFormData;
+    globalThis.setTimeout = originalSetTimeout;
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('concept 2 enhancement creates a mobile navigation control from its source navigation', () => {
   const classes = new Set();
   const attributes = new Map();

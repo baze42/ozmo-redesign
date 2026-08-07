@@ -122,3 +122,12 @@ test('concept 3 CSS implements the website care redesign design contract', () =>
 test('concept 3 anchored insight cards clear the sticky header', () => {
   assert.match(concept3Css, /\.article-grid article\[id\]\s*\{[^}]*scroll-margin-top:\s*(?:9|10|11|12)rem\s*;/is);
 });
+
+test('concept 3 gives one header audit CTA a restrained spark pulse', () => {
+  const auditCta = concept3Css.match(/\.site-header\s*>\s*\.button-primary\s*\{([^}]*)\}/)?.[1] ?? '';
+  assert.notEqual(auditCta, '', 'Concept 3 should target the single audit CTA in each header');
+  assert.match(auditCta, /border-color:\s*var\(--spark\)\s*;/, 'the header audit CTA should use the spark accent');
+  assert.match(auditCta, /animation:\s*spark-pulse\b/, 'the header audit CTA should use the restrained spark pulse');
+  assert.match(concept3Css, /@keyframes\s+spark-pulse\b/, 'Concept 3 should define the spark pulse');
+  assert.match(concept3Css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation\s*:\s*none\s*!important/, 'reduced motion should disable the spark pulse');
+});
