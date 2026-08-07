@@ -30,6 +30,11 @@ test('CSS gives final CTA primary buttons inverse contrast and gentle rise-in mo
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation\s*:\s*none/);
 });
 
+test('CSS hides empty form live regions', () => {
+  assert.match(css, /\.error-message:empty\s*\{[^}]*display:\s*none\s*;/);
+  assert.match(css, /\.form-status:empty\s*\{[^}]*display:\s*none\s*;/);
+});
+
 test('CSS avoids forbidden visual patterns', () => {
   assert.doesNotMatch(css, /blur\(/i);
   assert.doesNotMatch(css, /glassmorphism/i);

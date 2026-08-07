@@ -104,3 +104,47 @@ Results:
 ### Concerns
 
 None. No live endpoint is configured by design; the repeated-value payload behavior is covered by the focused unit contract.
+
+## Fix: Hide Empty Form Live Regions
+
+### RED Evidence
+
+Added focused style assertions requiring empty `.error-message` and `.form-status` live regions to use `display: none`:
+
+```sh
+node --test tests/style-contract.test.mjs
+```
+
+Result: 4 passed, 1 failed. The new `CSS hides empty form live regions` test failed because neither empty-state selector existed in the stylesheet.
+
+### GREEN Evidence
+
+Commands:
+
+```sh
+node --test tests/form-contract.test.cjs tests/content-contract.test.mjs tests/static-contract.test.mjs tests/style-contract.test.mjs
+npm test
+git diff --check
+```
+
+Results:
+
+- Targeted form, content, static, and style suite: 27 passed, 0 failed.
+- `npm test`: 27 passed, 0 failed.
+- `git diff --check`: no whitespace errors.
+
+### Files Changed
+
+- `concepts/01-digital-operations-partner/assets/css/styles.css`
+- `tests/style-contract.test.mjs`
+- `.superpowers/sdd/task-4-report.md`
+
+### Self-Review
+
+- Empty `.form-status` and `.error-message` elements are removed from layout with `display: none`.
+- Populated live regions retain the existing shared padding and border radius plus their existing status/error colors.
+- The style contract directly guards both selectors against regression.
+
+### Concerns
+
+None.

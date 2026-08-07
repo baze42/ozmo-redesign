@@ -140,6 +140,8 @@ fieldset label { color: var(--ink-600); font-weight: 400; }
 fieldset input { width: auto; min-height: auto; margin-right: 0.5rem; accent-color: var(--terracotta); }
 .check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
 .form-status, .error-message { padding: 0.8rem 1rem; border-radius: var(--radius-sm); }
+.form-status:empty { display: none; }
+.error-message:empty { display: none; }
 .form-status { background: var(--cream-200); color: var(--navy); }
 .error-message { background: var(--terracotta-100); color: var(--terracotta-700); }
 .is-loading { pointer-events: none; opacity: 0.7; }
