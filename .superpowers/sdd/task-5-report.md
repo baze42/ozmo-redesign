@@ -43,3 +43,12 @@ The first mobile browser run exposed an anchor-navigation defect. The Audit link
 - `npm run test:browser` passed 12 checks across Desktop Chrome, Tablet Safari, and Mobile Safari.
 - `npm run verify` passed 12 Node tests and 12 Playwright tests.
 - Fix commit: `1100670 test: cover tablet and interaction console errors`.
+
+## CTA Review Fixes
+
+- Added a focused Playwright test for the primary hero `Request Your Digital Growth Audit` link while retaining the existing navigation Audit-link test.
+- The new test reproduced the defect on Mobile Safari before the fix: the hero link's `#audit` target aligned the audit intro, leaving `#audit-form` outside the viewport.
+- Retargeted the sticky-header, hero, and footer `Request Your Digital Growth Audit` links to `#audit-form`. The form submit button remains a submit control and was not changed.
+- `npm run test:browser` passed 15 checks across Desktop Chrome, Tablet Safari, and Mobile Safari.
+- `npm run verify` passed 12 Node tests and 15 Playwright tests.
+- Fix commit: `46bece2 fix: target audit CTAs to form`.
