@@ -61,18 +61,18 @@ Full prompt text used:
 ```text
 Use case: productivity-visual
 Asset type: Ozmo Digital services systems image
-Primary request: Create a tangible editorial workspace visual showing connected digital touchpoints: website layout sketches, lead notifications, email sequence cards, automation map, and analytics snapshots.
-Scene/backdrop: Premium planning table with layered paper cards, a laptop edge, and precise system-mapping materials.
-Subject: The system should imply website, marketing, lead capture, automation, and optimization working together.
+Primary request: Create a tangible editorial workspace visual showing connected digital touchpoints through abstract website wireframes, lead cards, automation flow shapes, analytics cards, and planning materials.
+Scene/backdrop: Premium planning table with a laptop edge, layered paper cards, navy structure lines, terracotta action accents, and a warm neutral surface.
+Subject: The system should imply website, marketing, lead capture, automation, and optimization working together through visual relationships only.
 Style/medium: Realistic editorial productivity visual, not a futuristic interface.
 Composition/framing: Vertical 4:5 composition with organized diagonals and safe responsive cropping.
 Lighting/mood: Clear, strategic, precise, warm.
 Color palette: Navy structure lines, terracotta action accents, warm neutral surface.
-Constraints: no real brand names, no readable nonsense UI as the focal point, no sci-fi holograms, no watermark.
+Constraints: No visible brand names, no watermark, no logo mark, no readable words, no readable labels, no readable numbers, no readable metrics, no readable UI text, and no readable handwriting. Use abstract lines, blank cards, icons without letters, geometric marks, and intentionally non-legible micro-lines only.
 Avoid: generic SaaS dashboard collage, neon technology aesthetic, bokeh, decorative gradient orbs.
 ```
 
-Fallback note: A future replacement should preserve the vertical 4:5 organized-diagonal planning composition, warm neutral surface with navy structure and terracotta action cues, responsive crop safety, and every listed constraint and avoid item.
+Fallback note: A future replacement should preserve the vertical 4:5 organized-diagonal planning composition, warm neutral surface with navy structure and terracotta action cues, responsive crop safety, non-legible abstract system materials, and every listed constraint and avoid item.
 
 ## Audit Detail
 
