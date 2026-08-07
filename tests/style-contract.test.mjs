@@ -103,3 +103,7 @@ test('concept 2 styles skip links and local-growth line icons', () => {
   assert.match(concept2Css, /\.line-icon svg\s*\{[^}]*stroke-width:\s*2/is, 'Concept 2 icons should use Lucide-style stroke weight');
   assert.match(concept2Css, /\.stage-icon\s*\{[^}]*display:\s*inline-flex/is, 'Concept 2 growth-path icons should have a stable inline-flex frame');
 });
+
+test('concept 2 anchored insight cards clear the sticky header', () => {
+  assert.match(concept2Css, /\.article-grid article\[id\]\s*\{[^}]*scroll-margin-top:\s*(?:9|10|11|12)rem\s*;/is);
+});

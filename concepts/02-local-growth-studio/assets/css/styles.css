@@ -189,6 +189,7 @@ main > section > ul li + li, main > section > ol li + li { margin-top: 0.65rem; 
 .pillar-grid article { padding: 1.25rem; }
 .article-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .article-grid article { display: grid; align-content: start; gap: 0.8rem; }
+.article-grid article[id] { scroll-margin-top: 10rem; }
 
 .line-icon {
   display: inline-flex;
