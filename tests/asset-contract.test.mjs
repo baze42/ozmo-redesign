@@ -28,7 +28,21 @@ const concepts = [
       'marketing-rhythm.png',
     ],
   },
+  {
+    label: 'Concept 3',
+    imageRoot: path.join(repoRoot, 'concepts/03-website-care-redesign/assets/img'),
+    images: [
+      'hero-website-redesign.png',
+      'redesign-review.png',
+      'care-checklist.png',
+      'conversion-path.png',
+      'launch-workshop.png',
+    ],
+  },
 ];
+
+const concept3Root = path.join(repoRoot, 'concepts/03-website-care-redesign');
+const concept3Pages = ['index.html', 'services.html', 'site-audit.html', 'about.html', 'insights.html', 'contact.html'];
 
 test('all required image targets exist and are non-empty PNG files', () => {
   for (const concept of concepts) {
@@ -63,5 +77,21 @@ test('prompt documentation names every image target and avoids fake-logo/text ar
     assert.match(prompts, /no readable text/i, `${concept.label} prompts should forbid readable text`);
     assert.match(prompts, /no logos/i, `${concept.label} prompts should forbid logos`);
     assert.match(prompts, /no watermark/i, `${concept.label} prompts should forbid watermarks`);
+  }
+});
+
+test('concept 3 page image references use the approved generated asset set', () => {
+  const approved = new Set(concepts.find((concept) => concept.label === 'Concept 3').images);
+  for (const image of [...approved]) {
+    approved.add(image.replace(/\.png$/, '.webp'));
+  }
+
+  for (const page of concept3Pages) {
+    const html = fs.readFileSync(path.join(concept3Root, page), 'utf8');
+    const references = Array.from(html.matchAll(/assets\/img\/([^"']+)/g)).map((match) => match[1]);
+    assert.ok(references.length > 0, `Concept 3 ${page} should reference generated imagery`);
+    for (const reference of references) {
+      assert.ok(approved.has(reference), `Concept 3 ${page} image ${reference} should be one of the approved generated assets`);
+    }
   }
 });
