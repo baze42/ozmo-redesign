@@ -24,6 +24,13 @@ function withoutTags(markup) {
   return markup.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function publicCopy(markup) {
+  const body = markup.match(/<body\b[\s\S]*<\/body>/i)?.[0] ?? '';
+  const descriptions = [...markup.matchAll(/<meta\b[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/gi)]
+    .map((match) => match[1]);
+  return `${withoutTags(body)} ${descriptions.join(' ')}`;
+}
+
 test('home page implements the approved StoryBrand flow', () => {
   const text = withoutTags(html(pages.home));
   for (const required of [
@@ -61,7 +68,7 @@ test('services page presents services in the approved order', () => {
     previous = index;
   }
   assert.match(text, /owner problem/i);
-  assert.match(text, /what OZMO handles/i);
+  assert.match(text, /what we handle/i);
   assert.match(text, /signs you need this/i);
   assert.match(text, /business outcome/i);
 });
@@ -114,6 +121,24 @@ test('public pages avoid forbidden proof and draft language', () => {
     const text = withoutTags(html(page));
     for (const pattern of forbidden) {
       assert.doesNotMatch(text, pattern, `${page} should not contain ${pattern}`);
+    }
+  }
+});
+
+test('public body and meta copy uses OZMO first-person voice', () => {
+  const forbidden = [
+    /OZMO Digital brings/i,
+    /OZMO connects/i,
+    /OZMO uses/i,
+    /OZMO will use/i,
+    /OZMO reviews/i,
+    /OZMO brings the website/i,
+    /OZMO handles/i,
+  ];
+  for (const page of Object.values(pages)) {
+    const text = publicCopy(html(page));
+    for (const pattern of forbidden) {
+      assert.doesNotMatch(text, pattern, `${page} should use we/you language instead of ${pattern}`);
     }
   }
 });
