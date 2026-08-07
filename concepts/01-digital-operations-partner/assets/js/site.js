@@ -118,6 +118,8 @@
         const values = Object.fromEntries(new root.FormData(form));
         const result = validateFields(fields, values);
         renderErrors(form, result.errors);
+        const status = form.querySelector('[data-form-status]');
+        if (status) status.textContent = '';
         if (!result.valid) return;
         await runSubmit(form, FORM_ENDPOINTS[type] || '');
       });
