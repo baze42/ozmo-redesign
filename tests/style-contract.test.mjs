@@ -20,6 +20,16 @@ test('CSS implements responsive layout and reduced motion support', () => {
   assert.match(css, /overflow-wrap:\s*break-word/);
 });
 
+test('CSS gives final CTA primary buttons inverse contrast and gentle rise-in motion', () => {
+  const inverseCta = css.match(/\.final-cta \.button-primary\s*\{([^}]*)\}/)?.[1] ?? '';
+  assert.notEqual(inverseCta, '', 'final CTA primary buttons should have a scoped inverse treatment');
+  assert.match(inverseCta, /background:\s*(?!var\(--navy\))[^;]+;/);
+  assert.match(inverseCta, /border(?:-color)?:\s*[^;]+;/);
+  assert.match(css, /@keyframes\s+rise-in\b/);
+  assert.match(css, /animation\s*:[^;]*\brise-in\b/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation\s*:\s*none/);
+});
+
 test('CSS avoids forbidden visual patterns', () => {
   assert.doesNotMatch(css, /blur\(/i);
   assert.doesNotMatch(css, /glassmorphism/i);

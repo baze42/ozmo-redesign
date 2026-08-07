@@ -54,3 +54,50 @@ Results:
 ## Concerns
 
 - Task 5 image generation has not run, so several existing page image references remain placeholders until that task supplies the final PNG assets.
+
+## Fix: Inverse CTA Contrast And Rise-In Motion
+
+### RED Evidence
+
+Command:
+
+```bash
+node --test tests/style-contract.test.mjs
+```
+
+Result: 3 passing, 1 failing.
+
+- `CSS gives final CTA primary buttons inverse contrast and gentle rise-in motion` failed because the stylesheet had no scoped `.final-cta .button-primary` rule.
+- The failure occurred before the inverse contrast and `rise-in` CSS was added, confirming the new contract was exercising the missing review requirements.
+
+### GREEN Evidence
+
+Commands:
+
+```bash
+node --test tests/style-contract.test.mjs tests/content-contract.test.mjs tests/static-contract.test.mjs
+npm test
+git diff --check
+```
+
+Results:
+
+- Combined style/content/static run: 22 passing, 0 failing.
+- `npm test`: 22 passing, 0 failing.
+- `git diff --check`: clean, exit code 0.
+
+### Files Changed
+
+- `tests/style-contract.test.mjs`
+  - Added focused assertions for scoped inverse final-CTA contrast, the `rise-in` keyframes and usage, and reduced-motion animation disabling.
+- `concepts/01-digital-operations-partner/assets/css/styles.css`
+  - Added a cream-surface, bordered `.final-cta .button-primary` treatment with terracotta depth so it is distinct from the navy band.
+  - Added `@keyframes rise-in` and applied it to direct hero content with a small stagger for the second item.
+  - Updated the reduced-motion media query to disable animation and transitions explicitly.
+
+### Self-Review
+
+- The inverse CTA is scoped to final CTA bands and does not spend the spark-orange accent.
+- Hero content gets a single gentle opacity/translate entrance; no additional HTML hooks or broad page-wide animation were introduced.
+- Reduced-motion users receive `animation: none !important` and `transition: none !important`, preserving the accessibility contract.
+- The contract verifies both presence and the intended contrast boundary rather than only checking selector text.
