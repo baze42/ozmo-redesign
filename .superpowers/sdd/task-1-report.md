@@ -56,3 +56,32 @@ Ran `node --test tests/static-contract.test.mjs` after implementing the minimal 
 ## Concerns, if any
 
 None for Task 1. Page content, generated image targets, and deeper interaction behavior are intentionally deferred to later tasks.
+
+## Review Fix: Task 1 Findings
+
+### Test commands and results
+
+- `node --test tests/static-contract.test.mjs` (RED, before implementation)
+  - FAIL: 4 passed, 2 failed. The new failures correctly identified the missing Fraunces/display-font and cream-background contract, plus the missing primary site-audit hero CTA.
+- `node --test tests/static-contract.test.mjs` (GREEN, after implementation)
+  - PASS: 6 tests, 0 failures.
+- `npm test` (GREEN, after implementation)
+  - PASS: 6 tests, 0 failures.
+
+### Files changed
+
+- `tests/static-contract.test.mjs`
+- `concepts/01-digital-operations-partner/assets/css/styles.css`
+- `concepts/01-digital-operations-partner/site-audit.html`
+- `.superpowers/sdd/task-1-report.md`
+
+### Self-review
+
+- Added a loaded Fraunces import, `--font-display`, and display-font application to `h1`, `h2`, and `h3`.
+- Changed the page/body background to `var(--cream)` while retaining `--paper` for raised surfaces.
+- Updated the site-audit hero primary CTA to `Request a site audit`.
+- The focused assertions fail against the pre-fix implementation and pass after the minimal changes. No unrelated files were modified.
+
+### Concerns, if any
+
+None.
