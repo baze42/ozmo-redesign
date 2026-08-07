@@ -35,3 +35,11 @@ The first mobile browser run exposed an anchor-navigation defect. The Audit link
 ## Concerns
 
 - An independent whole-branch code-review subagent was unavailable in this environment, so that final checklist item could not be requested. The local self-review and all specified automated checks completed.
+
+## Review Fixes
+
+- Added the `Tablet Safari` Playwright project using the `iPad Pro 11` device profile, so the browser suite now covers desktop, tablet, and mobile layouts.
+- Reworked browser error capture so each page's console and `pageerror` events are retained in a `WeakMap` and asserted in `afterEach`. Errors occurring during navigation, anchor interactions, or form submission now fail the corresponding test.
+- `npm run test:browser` passed 12 checks across Desktop Chrome, Tablet Safari, and Mobile Safari.
+- `npm run verify` passed 12 Node tests and 12 Playwright tests.
+- Fix commit: `1100670 test: cover tablet and interaction console errors`.
