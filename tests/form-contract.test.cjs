@@ -56,13 +56,14 @@ test('formDataToObject preserves repeated form values as arrays', () => {
   });
 });
 
-test('source forms preserve native validation and have intentional POST fallbacks', () => {
+test('source forms preserve native validation and use privacy-preserving static POST fallbacks', () => {
   for (const page of ['site-audit.html', 'contact.html']) {
     const html = fs.readFileSync(path.join(conceptRoot, page), 'utf8');
     const form = html.match(/<form\b[^>]*data-ozmo-form=[^>]*>/i)?.[0] ?? '';
     assert.doesNotMatch(form, /\bnovalidate\b/i, `${page} should preserve native validation before JavaScript runs`);
     assert.match(form, /\bmethod=["']post["']/i, `${page} should use POST when JavaScript is unavailable`);
-    assert.match(form, /\baction=["']mailto:[^"']+["']/i, `${page} should provide a deliberate no-JavaScript fallback`);
+    assert.match(form, /\baction=["']["']/i, `${page} should keep no-JavaScript form data on the current page until a production endpoint is configured`);
+    assert.doesNotMatch(form, /\baction=["']mailto:/i, `${page} should not expose form data in a mailto URL or guess a recipient`);
     assert.match(html, /<p class="form-status"[^>]*role="status"/i, `${page} status should have status semantics`);
     assert.match(html, /<p class="error-message"[^>]*role="alert"/i, `${page} errors should have alert semantics`);
   }

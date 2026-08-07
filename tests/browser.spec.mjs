@@ -28,6 +28,16 @@ async function settleForScreenshot(page) {
   await page.addStyleTag({ content: '*, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }' });
   await page.evaluate(async () => {
     await document.fonts.ready;
+    await Promise.all(Array.from(document.images).map(async (image) => {
+      image.loading = 'eager';
+      if (!image.complete) {
+        await new Promise((resolve) => {
+          image.addEventListener('load', resolve, { once: true });
+          image.addEventListener('error', resolve, { once: true });
+        });
+      }
+      if (image.naturalWidth > 0) await image.decode();
+    }));
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
 }
@@ -89,10 +99,39 @@ test('mobile navigation and native contact validation remain usable with JavaScr
   await expect(page.getByRole('link', { name: 'Services', exact: true }).first()).toBeVisible();
   const form = page.locator('[data-ozmo-form="contact"]');
   await expect(form).toHaveAttribute('method', 'post');
-  await expect(form).toHaveAttribute('action', /^mailto:/);
+  await expect(form).toHaveAttribute('action', '');
   await page.getByRole('button', { name: 'Send message' }).click();
   await expect.poll(() => form.evaluate((element) => element.matches(':invalid'))).toBe(true);
   await context.close();
+});
+
+test('enhanced static audit submissions show success, reset, and stay offline', async ({ page }) => {
+  await gotoPage(page, 'site-audit.html');
+  const submissions = [];
+  page.on('request', (request) => {
+    if (request.method() === 'POST' || request.resourceType() === 'fetch') submissions.push(request);
+  });
+  await completeAudit(page);
+  await page.getByRole('button', { name: /request a site audit/i }).click();
+  await expect(page.getByRole('status')).toContainText(/ready for review/i);
+  await expect(page.getByLabel('Name')).toHaveValue('');
+  await expect(page.getByRole('textbox', { name: 'Email', exact: true })).toHaveValue('');
+  await expect(page.getByLabel('Website URL')).toHaveValue('');
+  await expect(page.getByLabel('What feels hardest right now?')).toHaveValue('');
+  expect(submissions).toHaveLength(0);
+});
+
+test('JavaScript-enabled mobile menu expands and follows its Services link', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await gotoPage(page, 'index.html');
+  const menu = page.getByRole('button', { name: 'Menu', exact: true });
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  const services = page.locator('#nav-menu').getByRole('link', { name: 'Services', exact: true });
+  await expect(services).toBeVisible();
+  await services.click();
+  await expect(page).toHaveURL(/services\.html$/);
 });
 
 test('mobile navigation remains visible if the enhancement script is unavailable', async ({ page }) => {
@@ -143,4 +182,18 @@ test('settled desktop and mobile screenshots can be captured over local HTTP', a
   await gotoPage(page, 'index.html');
   await settleForScreenshot(page);
   await page.screenshot({ path: path.join(repoRoot, 'artifacts/screenshots/concept-1-home-mobile.png'), fullPage: true });
+});
+
+test('settleForScreenshot loads and decodes lazy images before capture', async ({ page }) => {
+  await gotoPage(page, 'index.html');
+  await page.evaluate(() => {
+    const image = document.createElement('img');
+    image.id = 'lazy-screenshot-probe';
+    image.loading = 'lazy';
+    image.src = 'assets/img/hero-digital-operations.png';
+    image.style.cssText = 'position:absolute; top:100000px;';
+    document.body.append(image);
+  });
+  await settleForScreenshot(page);
+  await expect.poll(() => page.locator('#lazy-screenshot-probe').evaluate((image) => image.naturalWidth > 0)).toBe(true);
 });
