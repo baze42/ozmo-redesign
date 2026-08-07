@@ -31,6 +31,8 @@ test('root comparison hub exists and links concept 1 without presenting itself a
 });
 
 test('concept 1 contains exactly the required deployable pages', () => {
+  const actualPages = fs.readdirSync(conceptRoot).filter((entry) => entry.endsWith('.html')).sort();
+  assert.deepEqual(actualPages, [...requiredPages].sort(), 'concept root should contain exactly the required HTML pages');
   for (const page of requiredPages) {
     assert.ok(fs.existsSync(path.join(conceptRoot, page)), `${page} should exist`);
     const html = fs.readFileSync(path.join(conceptRoot, page), 'utf8');
@@ -75,5 +77,29 @@ test('site audit primary lead action stays on the audit page', () => {
   const cta = mainContent.match(/<a\b(?=[^>]*class="button button-primary")(?=[^>]*>\s*Request a site audit\s*<\/a>)[^>]*>/i)?.[0] ?? '';
   const href = cta.match(/href="([^"]+)"/i)?.[1];
   assert.ok(href, 'site audit primary CTA should have an href');
-  assert.notEqual(href, 'contact.html');
+  assert.match(mainContent, /id="audit-request"/i, 'site audit should expose a meaningful audit request anchor');
+  assert.equal(href, '#audit-request');
+});
+
+test('concept 1 color and typography tokens use the core design contract', () => {
+  const css = read('concepts/01-digital-operations-partner/assets/css/styles.css');
+  for (const [token, value] of [['navy', '#1F3A5F'], ['terracotta', '#C1622D'], ['spark', '#F05000'], ['ink', '#2A2725']]) {
+    assert.match(css, new RegExp(`--${token}\\s*:\\s*${value}`, 'i'), `CSS should define --${token}`);
+  }
+  assert.match(css, /--font-body\s*:\s*[^;]+/i);
+  assert.match(css, /body\s*\{[^}]*color:\s*var\(--ink\)/is);
+});
+
+test('concept 1 interactive controls have visible focus states', () => {
+  const css = read('concepts/01-digital-operations-partner/assets/css/styles.css');
+  assert.match(css, /a:focus-visible[^{}]*\{/i);
+  assert.match(css, /button:focus-visible[^{}]*\{/i);
+  assert.match(css, /\.nav-toggle:focus-visible[^{}]*\{/i);
+});
+
+test('non-home concept pages have page-specific descriptions', () => {
+  for (const page of requiredPages.filter((entry) => entry !== 'index.html')) {
+    const html = fs.readFileSync(path.join(conceptRoot, page), 'utf8');
+    assert.match(html, /<meta\s+name="description"\s+content="[^"]+"\s*\/?\s*>/i, `${page} should have a description meta tag`);
+  }
 });

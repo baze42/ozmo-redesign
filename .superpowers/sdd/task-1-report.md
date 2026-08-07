@@ -115,3 +115,39 @@ None.
 ### Concerns, if any
 
 None.
+
+## Review Fix 3: Task 1 Findings
+
+### Test commands and results
+
+- `node --test tests/static-contract.test.mjs` (RED, after adding the focused assertions)
+  - FAIL: 5 passed, 4 failed. The new failures correctly identified the inert `#main-content` audit CTA, missing core CSS tokens/body ink color, missing visible focus selectors, and missing non-home descriptions. The exact deployable-page assertion also now compares the full root HTML listing against the required page set.
+- `node --test tests/static-contract.test.mjs` (GREEN, after implementation)
+  - PASS: 9 tests, 0 failures.
+- `npm test` (GREEN, after implementation)
+  - PASS: 9 tests, 0 failures.
+- `git diff --check` (GREEN, after implementation)
+  - PASS: no whitespace errors.
+
+### Files changed
+
+- `tests/static-contract.test.mjs`
+- `concepts/01-digital-operations-partner/assets/css/styles.css`
+- `concepts/01-digital-operations-partner/site-audit.html`
+- `concepts/01-digital-operations-partner/services.html`
+- `concepts/01-digital-operations-partner/about.html`
+- `concepts/01-digital-operations-partner/insights.html`
+- `concepts/01-digital-operations-partner/contact.html`
+- `.superpowers/sdd/task-1-report.md`
+
+### Self-review
+
+- The site-audit primary CTA now targets the visible `#audit-request` section rather than the existing main landmark.
+- Shared CSS defines the requested navy, terracotta, spark, ink, body-font, and display-font tokens; body text uses `var(--ink)` and interactive controls receive a visible focus outline.
+- All five non-home shells have distinct description metadata.
+- The deployable-page test compares the complete concept-root `.html` listing with the required set, preventing untracked extra shells.
+- No unrelated files were modified.
+
+### Concerns, if any
+
+None.
