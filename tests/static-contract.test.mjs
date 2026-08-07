@@ -5,16 +5,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const conceptRoot = path.join(repoRoot, 'concepts', '01-digital-operations-partner');
-const requiredPages = ['index.html', 'services.html', 'site-audit.html', 'about.html', 'insights.html', 'contact.html'];
-const requiredLogos = [
-  'ozmo-logo-cream.png',
-  'ozmo-logo-full.png',
-  'ozmo-logo-ink.png',
-  'ozmo-logo-navy.png',
-  'ozmo-logo-white.png',
-  'ozmo-mark.png',
+const concepts = [
+  { slug: '01-digital-operations-partner', label: 'Digital Operations Partner' },
+  { slug: '02-local-growth-studio', label: 'Local Growth Studio' },
 ];
+const requiredPages = ['index.html', 'services.html', 'site-audit.html', 'about.html', 'insights.html', 'contact.html'];
+const requiredLogos = ['ozmo-logo-cream.png', 'ozmo-logo-full.png', 'ozmo-logo-ink.png', 'ozmo-logo-navy.png', 'ozmo-logo-white.png', 'ozmo-mark.png'];
+const conceptRoot = path.join(repoRoot, 'concepts', concepts[0].slug);
 
 function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -30,17 +27,31 @@ test('root comparison hub exists and links concept 1 without presenting itself a
   assert.doesNotMatch(html, /final OZMO website/i);
 });
 
-test('concept 1 contains exactly the required deployable pages', () => {
-  const actualPages = fs.readdirSync(conceptRoot).filter((entry) => entry.endsWith('.html')).sort();
-  assert.deepEqual(actualPages, [...requiredPages].sort(), 'concept root should contain exactly the required HTML pages');
-  for (const page of requiredPages) {
-    assert.ok(fs.existsSync(path.join(conceptRoot, page)), `${page} should exist`);
-    const html = fs.readFileSync(path.join(conceptRoot, page), 'utf8');
-    assert.match(html, /<header\b/i, `${page} should include a header landmark`);
-    assert.match(html, /<main\b/i, `${page} should include a main landmark`);
-    assert.match(html, /<footer\b/i, `${page} should include a footer landmark`);
-    assert.match(html, /assets\/css\/styles\.css/i, `${page} should reference self-contained CSS`);
-    assert.match(html, /assets\/js\/site\.js/i, `${page} should reference self-contained JS`);
+test('concept 2 is linked from the comparison hub and concept 3 remains queued', () => {
+  const html = read('index.html');
+  assert.match(html, /concepts\/02-local-growth-studio\/index\.html/);
+  assert.match(html, /Local Growth Studio/i);
+  assert.match(html, /Website Care \+ Redesign Specialist/i);
+  assert.match(html, /Concept 03/i);
+  assert.match(html, /Coming next/i);
+});
+
+test('implemented concepts contain the required deployable pages and self-contained assets', () => {
+  for (const concept of concepts) {
+    const root = path.join(repoRoot, 'concepts', concept.slug);
+    const actualPages = fs.readdirSync(root).filter((entry) => entry.endsWith('.html')).sort();
+    assert.deepEqual(actualPages, [...requiredPages].sort(), `${concept.slug} should contain exactly the required HTML pages`);
+    for (const page of requiredPages) {
+      const file = path.join(root, page);
+      assert.ok(fs.existsSync(file), `${concept.slug}/${page} should exist`);
+      const html = fs.readFileSync(file, 'utf8');
+      assert.match(html, /<header\b/i, `${concept.slug}/${page} should include a header landmark`);
+      assert.match(html, /<main\b/i, `${concept.slug}/${page} should include a main landmark`);
+      assert.match(html, /<footer\b/i, `${concept.slug}/${page} should include a footer landmark`);
+      assert.match(html, /assets\/css\/styles\.css/i, `${concept.slug}/${page} should reference local CSS`);
+      assert.match(html, /assets\/js\/site\.js/i, `${concept.slug}/${page} should reference local JS`);
+      assert.doesNotMatch(html, /\.\.\/01-digital-operations-partner|01-digital-operations-partner\/assets/i, `${concept.slug}/${page} should not use Concept 1 assets`);
+    }
   }
 });
 
@@ -54,12 +65,14 @@ test('concept 1 navigation links stay inside the concept directory', () => {
   }
 });
 
-test('concept 1 has copied OZMO logo assets', () => {
-  for (const logo of requiredLogos) {
-    const copied = path.join(conceptRoot, 'assets', 'logos', logo);
-    const source = path.join(repoRoot, 'docs', 'ref', 'assets', logo);
-    assert.ok(fs.existsSync(copied), `${logo} should be copied into the concept`);
-    assert.equal(fs.statSync(copied).size, fs.statSync(source).size, `${logo} should match the source asset size`);
+test('implemented concepts have copied OZMO logo assets', () => {
+  for (const concept of concepts) {
+    for (const logo of requiredLogos) {
+      const copied = path.join(repoRoot, 'concepts', concept.slug, 'assets', 'logos', logo);
+      const source = path.join(repoRoot, 'docs', 'ref', 'assets', logo);
+      assert.ok(fs.existsSync(copied), `${concept.slug}/${logo} should be copied into the concept`);
+      assert.equal(fs.statSync(copied).size, fs.statSync(source).size, `${concept.slug}/${logo} should match the source asset size`);
+    }
   }
 });
 
