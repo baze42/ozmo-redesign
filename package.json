@@ -1,0 +1,15 @@
+{
+  "name": "ozmo-redesign",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-testable OZMO Digital website concept testbed.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs tests/*.test.cjs",
+    "test:browser": "playwright test tests/browser.spec.mjs",
+    "verify": "node scripts/verify-site.mjs",
+    "serve": "python3 -m http.server 4173"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.0"
+  }
+}
