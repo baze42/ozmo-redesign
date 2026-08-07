@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const css = fs.readFileSync(path.join(repoRoot, 'concepts/01-digital-operations-partner/assets/css/styles.css'), 'utf8');
+const concept2Css = fs.readFileSync(path.join(repoRoot, 'concepts/02-local-growth-studio/assets/css/styles.css'), 'utf8');
 
 test('CSS includes approved OZMO design-system tokens', () => {
   for (const token of ['#1F3A5F', '#C1622D', '#F5EFE6', '#FBF8F2', '#F05000', 'Fraunces', 'Karla', 'IBM Plex Mono']) {
@@ -74,4 +75,13 @@ test('CSS avoids forbidden visual patterns', () => {
   assert.doesNotMatch(css, /orb/i);
   assert.doesNotMatch(css, /bokeh/i);
   assert.doesNotMatch(css, /linear-gradient\([^)]*purple/i);
+});
+
+test('concept 2 CSS implements the local growth design contract', () => {
+  for (const token of ['#1F3A5F', '#C1622D', '#F5EFE6', '#FBF8F2', '#F05000', 'Fraunces', 'Karla', 'IBM Plex Mono']) {
+    assert.match(concept2Css, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `Concept 2 CSS should include ${token}`);
+  }
+  assert.match(concept2Css, /local-proof|growth-path|neighborhood|community|warm-accent/i);
+  assert.match(concept2Css, /html\.js\s+\.nav-menu\s*\{[^}]*display:\s*none\s*;/);
+  assert.doesNotMatch(concept2Css, /blur\(|glassmorphism|orb|bokeh/i);
 });
