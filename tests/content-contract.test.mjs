@@ -41,6 +41,30 @@ function publicCopy(markup) {
   return `${withoutTags(body)} ${descriptions.join(' ')}`;
 }
 
+function sectionMarkup(markup, heading) {
+  const sections = [...markup.matchAll(/<section\b[^>]*>[\s\S]*?<\/section>/gi)];
+  const section = sections.find(({ 0: candidate }) =>
+    new RegExp(`<h[1-6]\\b[^>]*>\\s*${heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*<\\/h[1-6]>`, 'i').test(candidate),
+  );
+  assert.ok(section, `expected a section headed "${heading}"`);
+  return section[0];
+}
+
+function sectionText(markup, heading) {
+  return withoutTags(sectionMarkup(markup, heading));
+}
+
+function assertSectionContains(markup, heading, required) {
+  const text = sectionText(markup, heading);
+  for (const phrase of required) {
+    assert.match(
+      text,
+      new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'),
+      `section "${heading}" should include "${phrase}"`,
+    );
+  }
+}
+
 test('home page implements the approved StoryBrand flow', () => {
   const text = withoutTags(html(pages.home));
   for (const required of [
@@ -313,6 +337,25 @@ test('concept 3 home follows the website care and redesign StoryBrand flow', () 
   ]) {
     assert.match(text, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
   }
+
+  const markup = html3(pages.home);
+  assertSectionContains(markup, 'The website improvement path', [
+    'Audit',
+    'Clarify',
+    'Redesign',
+    'Launch',
+    'Care',
+  ]);
+  assertSectionContains(markup, 'Standards you can inspect', [
+    'Audit depth',
+    'Care standards',
+    'Launch readiness',
+    'Proof-ready structure',
+  ]);
+  assertSectionContains(markup, 'Notes for a website that stays useful', [
+    'Five signs your website is costing you good leads',
+    'What a healthy website care plan should include',
+  ]);
 });
 
 test('concept 3 pages include required website care and redesign content', () => {
@@ -330,6 +373,18 @@ test('concept 3 pages include required website care and redesign content', () =>
     assert.match(audit, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
   }
 
+  const auditMarkup = html3(pages.audit);
+  assertSectionContains(auditMarkup, 'What to expect from this review', [
+    'Practical review',
+    'Fit conversation',
+    'Not a fake instant score',
+  ]);
+  assert.match(
+    sectionMarkup(auditMarkup, 'What to expect from this review'),
+    /<a\b[^>]*href=["']contact\.html["']/i,
+    'the audit expectations section should link to the Contact page',
+  );
+
   const insights = withoutTags(html3(pages.insights));
   for (const topic of [
     'Five signs your website is costing you good leads',
@@ -343,7 +398,8 @@ test('concept 3 pages include required website care and redesign content', () =>
 });
 
 test('concept 3 services present website care and redesign work in the approved order', () => {
-  const text = withoutTags(html3(pages.services));
+  const markup = html3(pages.services);
+  const text = withoutTags(markup);
   const ordered = [
     'Website redesign and message clarity',
     'Conversion paths and service-page structure',
@@ -356,6 +412,55 @@ test('concept 3 services present website care and redesign work in the approved 
     assert.ok(index > previous, `${service} should appear after the previous service`);
     previous = index;
   }
+
+  assertSectionContains(markup, 'Website redesign and care overview', [
+    'Redesign',
+    'Care',
+  ]);
+  for (const service of ordered) {
+    assertSectionContains(markup, service, [
+      'Owner problem',
+      'What we handle',
+      'Signs you need this',
+      'Owner outcome',
+    ]);
+  }
+  assertSectionContains(markup, 'How the work can connect', [
+    'Audit',
+    'Redesign',
+    'Launch',
+    'Care',
+    'Selective growth support',
+  ]);
+});
+
+test('concept 3 about page covers its approach, standards, and proof-ready layout', () => {
+  const markup = html3(pages.about);
+  assertSectionContains(markup, 'The choices behind the work', [
+    'Clarify before redesigning',
+    'Design the next step',
+    'Build for care and maintainability',
+    'Keep the website current',
+    'Improve only what helps the customer path',
+  ]);
+  assertSectionContains(markup, 'Design standards that support a clear next step', [
+    'Clean hierarchy',
+    'Conversion-minded',
+    'Reusable page patterns',
+  ]);
+  assertSectionContains(markup, 'Working rhythm', [
+    'Audit',
+    'Clarify',
+    'Redesign',
+    'Launch',
+    'Care',
+    'Improve',
+  ]);
+  assertSectionContains(markup, 'Proof should have a useful place', [
+    'Service-specific evidence',
+    'Before-and-after context',
+    'Audit examples',
+  ]);
 });
 
 test('concept 3 forms use JavaScript-enabled submission with a disabled source state', () => {
