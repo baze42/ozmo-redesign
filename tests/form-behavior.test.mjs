@@ -28,6 +28,51 @@ test("validateForm returns field-level messages for missing required fields and 
   assert.equal(result.errors.challenge, "Please share the biggest digital challenge.");
 });
 
+test("validateForm accepts an empty website but rejects an invalid populated URL", () => {
+  const { window } = loadDom();
+  const form = window.document.querySelector("#audit-form");
+  form.querySelector("#name").value = "Alex Rivera";
+  form.querySelector("#email").value = "alex@example.com";
+  form.querySelector("#business").value = "Rivera Studio";
+  form.querySelector("#challenge").value = "Follow-up is inconsistent.";
+
+  assert.equal(window.OzmoAudit.validateForm(form).valid, true);
+
+  form.querySelector("#website").value = "not a website";
+  const result = window.OzmoAudit.validateForm(form);
+
+  assert.equal(result.valid, false);
+  assert.equal(result.errors.website, "Please enter a valid website URL.");
+});
+
+test("failed submit associates errors, marks invalid controls, and focuses the first invalid field", () => {
+  const { window } = loadDom();
+  const form = window.document.querySelector("#audit-form");
+
+  form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+
+  for (const field of ["name", "email", "business", "challenge"]) {
+    const control = form.elements[field];
+    const error = window.document.querySelector(`#${field}-error`);
+    assert.equal(control.getAttribute("aria-describedby"), error.id);
+    assert.equal(control.getAttribute("aria-invalid"), "true");
+    assert.notEqual(error.textContent, "");
+  }
+  assert.equal(window.document.activeElement, form.elements.name);
+});
+
+test("subsequent validation clears aria-invalid from corrected controls", () => {
+  const { window } = loadDom();
+  const form = window.document.querySelector("#audit-form");
+  form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+
+  form.elements.name.value = "Alex Rivera";
+  form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+
+  assert.equal(form.elements.name.hasAttribute("aria-invalid"), false);
+  assert.equal(window.document.querySelector("#name-error").textContent, "");
+});
+
 test("getSelectedServices returns checked service values in document order", () => {
   const { window } = loadDom();
   const form = window.document.querySelector("#audit-form");

@@ -3,6 +3,7 @@
     name: "Please enter your name.",
     email: "Please enter a valid email address.",
     business: "Please enter your business name.",
+    website: "Please enter a valid website URL.",
     challenge: "Please share the biggest digital challenge."
   };
 
@@ -10,16 +11,27 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
+  function isValidWebsite(value) {
+    try {
+      const url = new URL(value);
+      return (url.protocol === "http:" || url.protocol === "https:") && Boolean(url.hostname);
+    } catch {
+      return false;
+    }
+  }
+
   function validateForm(form) {
     const errors = {};
     const name = form.elements.name.value.trim();
     const email = form.elements.email.value.trim();
     const business = form.elements.business.value.trim();
+    const website = form.elements.website.value.trim();
     const challenge = form.elements.challenge.value.trim();
 
     if (!name) errors.name = messages.name;
     if (!email || !isValidEmail(email)) errors.email = messages.email;
     if (!business) errors.business = messages.business;
+    if (website && !isValidWebsite(website)) errors.website = messages.website;
     if (!challenge) errors.challenge = messages.challenge;
 
     return { valid: Object.keys(errors).length === 0, errors };
@@ -32,7 +44,10 @@
   function renderErrors(form, errors) {
     form.querySelectorAll("[data-error-for]").forEach((node) => {
       const field = node.getAttribute("data-error-for");
+      const control = form.elements[field];
       node.textContent = errors[field] || "";
+      if (errors[field]) control.setAttribute("aria-invalid", "true");
+      else control.removeAttribute("aria-invalid");
     });
   }
 
@@ -47,6 +62,7 @@
     if (!result.valid) {
       form.dataset.submitted = "false";
       status.textContent = "Please review the highlighted fields so we can understand your business clearly.";
+      form.elements[Object.keys(result.errors)[0]].focus();
       return;
     }
 
@@ -61,21 +77,9 @@
     form.querySelector(".form-submit").textContent = "Audit Request Prepared";
   }
 
-  function bindSmoothAnchors() {
-    document.querySelectorAll('a[href^="#"]').forEach((link) => {
-      link.addEventListener("click", (event) => {
-        const target = document.querySelector(link.getAttribute("href"));
-        if (!target) return;
-        event.preventDefault();
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
-  }
-
   function init() {
     const form = document.querySelector("#audit-form");
     if (form) form.addEventListener("submit", handleAuditSubmit);
-    bindSmoothAnchors();
   }
 
   window.OzmoAudit = { validateForm, getSelectedServices };

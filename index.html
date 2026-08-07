@@ -45,7 +45,26 @@
           </div>
         </div>
         <figure class="hero-visual">
-          <img src="assets/images/hero-growth-audit.png" alt="Business owner reviewing a refined digital growth plan" />
+          <picture>
+            <source
+              type="image/avif"
+              srcset="assets/images/optimized/hero-growth-audit-560w.avif 560w, assets/images/optimized/hero-growth-audit-1122w.avif 1122w"
+              sizes="(max-width: 900px) calc(100vw - 40px), 44vw"
+            />
+            <source
+              type="image/webp"
+              srcset="assets/images/optimized/hero-growth-audit-560w.webp 560w, assets/images/optimized/hero-growth-audit-1122w.webp 1122w"
+              sizes="(max-width: 900px) calc(100vw - 40px), 44vw"
+            />
+            <img
+              src="assets/images/hero-growth-audit.png"
+              alt="Business owner reviewing a refined digital growth plan"
+              width="1122"
+              height="1402"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
           <figcaption>Strategy, design, and follow-up working from the same plan.</figcaption>
         </figure>
       </section>
@@ -67,7 +86,26 @@
             <p>Forms, inboxes, calls, and reminders are not connected, so interested people can lose momentum before they ever become customers.</p>
           </article>
         </div>
-        <img class="problem-image" src="assets/images/pain-points-workspace.png" alt="Refined workspace showing scattered marketing and follow-up materials" />
+        <picture class="problem-image">
+          <source
+            type="image/avif"
+            srcset="assets/images/optimized/pain-points-workspace-640w.avif 640w, assets/images/optimized/pain-points-workspace-1200w.avif 1200w"
+            sizes="(max-width: 640px) calc(100vw - 28px), 1180px"
+          />
+          <source
+            type="image/webp"
+            srcset="assets/images/optimized/pain-points-workspace-640w.webp 640w, assets/images/optimized/pain-points-workspace-1200w.webp 1200w"
+            sizes="(max-width: 640px) calc(100vw - 28px), 1180px"
+          />
+          <img
+            src="assets/images/pain-points-workspace.png"
+            alt="Refined workspace showing scattered marketing and follow-up materials"
+            width="1897"
+            height="829"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </section>
 
       <section class="guide section-shell" id="guide" aria-labelledby="guide-title">
@@ -109,7 +147,26 @@
           <h2 id="services-title">A polished digital presence is only useful when the pieces work together.</h2>
         </div>
         <div class="services-layout">
-          <img src="assets/images/connected-systems.png" alt="Connected website, marketing, automation, and analytics planning materials" />
+          <picture class="services-image">
+            <source
+              type="image/avif"
+              srcset="assets/images/optimized/connected-systems-500w.avif 500w, assets/images/optimized/connected-systems-1003w.avif 1003w"
+              sizes="(max-width: 900px) calc(100vw - 40px), 43vw"
+            />
+            <source
+              type="image/webp"
+              srcset="assets/images/optimized/connected-systems-500w.webp 500w, assets/images/optimized/connected-systems-1003w.webp 1003w"
+              sizes="(max-width: 900px) calc(100vw - 40px), 43vw"
+            />
+            <img
+              src="assets/images/connected-systems.png"
+              alt="Connected website, marketing, automation, and analytics planning materials"
+              width="1003"
+              height="1568"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
           <div class="service-list">
             <article class="service-card"><h3>Website Design And Redesign</h3><p>Clear messaging, refined design, and conversion paths built around the visitor's next step.</p></article>
             <article class="service-card"><h3>Digital Marketing</h3><p>Campaigns, content direction, and practical rhythm so your business stays visible without constant scramble.</p></article>
@@ -136,33 +193,52 @@
           <p>
             Tell us where your digital presence feels stuck. We will look for the gaps, missed opportunities, and practical improvements that can help your business turn attention into momentum.
           </p>
-          <img src="assets/images/audit-detail.png" alt="Notebook and digital planning materials for a consultative website audit" />
+          <picture class="audit-image">
+            <source
+              type="image/avif"
+              srcset="assets/images/optimized/audit-detail-640w.avif 640w, assets/images/optimized/audit-detail-1200w.avif 1200w"
+              sizes="(max-width: 900px) calc(100vw - 40px), 43vw"
+            />
+            <source
+              type="image/webp"
+              srcset="assets/images/optimized/audit-detail-640w.webp 640w, assets/images/optimized/audit-detail-1200w.webp 1200w"
+              sizes="(max-width: 900px) calc(100vw - 40px), 43vw"
+            />
+            <img
+              src="assets/images/audit-detail.png"
+              alt="Notebook and digital planning materials for a consultative website audit"
+              width="1586"
+              height="992"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
         </div>
         <form class="audit-form" id="audit-form" novalidate>
           <div class="form-row">
             <label for="name">Name</label>
-            <input id="name" name="name" autocomplete="name" required />
-            <p class="field-error" data-error-for="name"></p>
+            <input id="name" name="name" autocomplete="name" aria-describedby="name-error" required />
+            <p class="field-error" id="name-error" data-error-for="name"></p>
           </div>
           <div class="form-row">
             <label for="email">Email</label>
-            <input id="email" name="email" type="email" autocomplete="email" required />
-            <p class="field-error" data-error-for="email"></p>
+            <input id="email" name="email" type="email" autocomplete="email" aria-describedby="email-error" required />
+            <p class="field-error" id="email-error" data-error-for="email"></p>
           </div>
           <div class="form-row">
             <label for="business">Business name</label>
-            <input id="business" name="business" autocomplete="organization" required />
-            <p class="field-error" data-error-for="business"></p>
+            <input id="business" name="business" autocomplete="organization" aria-describedby="business-error" required />
+            <p class="field-error" id="business-error" data-error-for="business"></p>
           </div>
           <div class="form-row">
             <label for="website">Website URL</label>
-            <input id="website" name="website" type="url" inputmode="url" />
-            <p class="field-error" data-error-for="website"></p>
+            <input id="website" name="website" type="url" inputmode="url" aria-describedby="website-error" />
+            <p class="field-error" id="website-error" data-error-for="website"></p>
           </div>
           <div class="form-row form-row-full">
             <label for="challenge">Biggest digital challenge</label>
-            <textarea id="challenge" name="challenge" rows="5" required></textarea>
-            <p class="field-error" data-error-for="challenge"></p>
+            <textarea id="challenge" name="challenge" rows="5" aria-describedby="challenge-error" required></textarea>
+            <p class="field-error" id="challenge-error" data-error-for="challenge"></p>
           </div>
           <fieldset class="service-options">
             <legend>Services of interest</legend>
