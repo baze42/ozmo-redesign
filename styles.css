@@ -168,8 +168,8 @@ h3 {
 }
 
 .hero-lede,
-.guide p,
-.audit-copy p {
+.guide > p:not(.section-kicker),
+.audit-copy > p:not(.section-kicker) {
   max-width: 690px;
   color: var(--muted);
   font-size: clamp(1.08rem, 2vw, 1.28rem);

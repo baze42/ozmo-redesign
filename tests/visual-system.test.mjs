@@ -23,6 +23,15 @@ test("responsive layout uses stable dimensions and mobile breakpoints", () => {
   assert.match(source, /scroll-margin-top/);
 });
 
+test("Guide and Audit body copy styling excludes section kickers", () => {
+  const source = css();
+
+  assert.match(
+    source,
+    /\.guide > p:not\(\.section-kicker\),\s*\.audit-copy > p:not\(\.section-kicker\)\s*\{/,
+  );
+});
+
 test("visual system avoids overdone generic decoration and keeps cards restrained", () => {
   const source = css().toLowerCase();
 
