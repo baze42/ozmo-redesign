@@ -21,7 +21,7 @@
 
 ## Implementation Notes
 
-- Mobile navigation now defaults to visible, with collapsed behavior activated only by `html.js`; an inline head script sets the class before page rendering.
+- Mobile navigation now defaults to visible, with collapsed behavior activated only by `html.js`; the external `site.js` enhancement adds the class after it loads, so navigation remains visible if that script is unavailable.
 - Forms retain native validation and `POST` mailto fallbacks without JavaScript. JavaScript adds `novalidate` only when enhancement starts, gives empty live regions visually clipped semantics, and prevents repeated pending submissions.
 - WebP derivatives were produced locally with the installed Playwright Chromium canvas encoder. PNG originals remain unchanged.
 

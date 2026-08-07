@@ -95,6 +95,16 @@ test('mobile navigation and native contact validation remain usable with JavaScr
   await context.close();
 });
 
+test('mobile navigation remains visible if the enhancement script is unavailable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.route('**/assets/js/site.js', async (route) => {
+    await route.fulfill({ status: 404, body: '' });
+  });
+  await gotoPage(page, 'index.html');
+  await expect(page.locator('html')).not.toHaveClass(/(?:^|\s)js(?:\s|$)/);
+  await expect(page.getByRole('link', { name: 'Services', exact: true }).first()).toBeVisible();
+});
+
 test('configured endpoint failures show an in-page error state', async ({ page }) => {
   await page.route('**/configured-endpoint', async (route) => {
     await route.fulfill({ status: 500, body: 'Nope' });
