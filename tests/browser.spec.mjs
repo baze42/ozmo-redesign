@@ -100,27 +100,29 @@ for (const width of [390, 1440]) {
   }
 }
 
-test('navigation works over local HTTP and exposes a keyboard focus indicator', async ({ page }) => {
-  await gotoConceptPage(page, concepts[0], 'index.html');
-  await page.keyboard.press('Tab');
-  await expect(page.locator('.skip-link')).toBeFocused();
-  await page.getByRole('link', { name: 'Services', exact: true }).first().click();
-  await expect(page).toHaveURL(/services\.html$/);
-  await expect(page.getByRole('heading', { name: /connected digital support/i })).toBeVisible();
-});
+for (const concept of concepts) {
+  test(`${concept.name} navigation works over local HTTP and exposes a keyboard focus indicator`, async ({ page }) => {
+    await gotoConceptPage(page, concept, 'index.html');
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.skip-link')).toBeFocused();
+    await page.getByRole('link', { name: 'Services', exact: true }).first().click();
+    await expect(page).toHaveURL(new RegExp(`${concept.path}/services\\.html$`));
+    await expect(page.locator('main h1, main h2').first()).toBeVisible();
+  });
 
-test('mobile navigation and contact fields remain available with JavaScript disabled', async ({ browser }) => {
-  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 900 } });
-  const page = await context.newPage();
-  await gotoConceptPage(page, concepts[0], 'contact.html');
-  await expect(page.getByRole('link', { name: 'Services', exact: true }).first()).toBeVisible();
-  const form = page.locator('[data-ozmo-form="contact"]');
-  await expect(form).toHaveAttribute('method', 'post');
-  await expect(form).toHaveAttribute('action', '');
-  await page.getByLabel('Name').focus();
-  await expect.poll(() => form.evaluate((element) => element.matches(':invalid'))).toBe(true);
-  await context.close();
-});
+  test(`${concept.name} mobile navigation and contact fields remain available with JavaScript disabled`, async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 900 } });
+    const page = await context.newPage();
+    await gotoConceptPage(page, concept, 'contact.html');
+    await expect(page.getByRole('link', { name: 'Services', exact: true }).first()).toBeVisible();
+    const form = page.locator('[data-ozmo-form="contact"]');
+    await expect(form).toHaveAttribute('method', 'post');
+    await expect(form).toHaveAttribute('action', '');
+    await page.getByLabel('Name').focus();
+    await expect.poll(() => form.evaluate((element) => element.matches(':invalid'))).toBe(true);
+    await context.close();
+  });
+}
 
 for (const concept of concepts) {
   test(`${concept.name} valid no-JavaScript contact form cannot submit, navigate, or send data`, async ({ browser }) => {
@@ -177,44 +179,50 @@ for (const concept of concepts) {
   });
 }
 
-test('mobile navigation remains visible if the enhancement script is unavailable', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 900 });
-  await page.route('**/assets/js/site.js', async (route) => {
-    await route.fulfill({ status: 404, body: '' });
+for (const concept of concepts) {
+  test(`${concept.name} mobile navigation remains visible if the enhancement script is unavailable`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.route('**/assets/js/site.js', async (route) => {
+      await route.fulfill({ status: 404, body: '' });
+    });
+    await gotoConceptPage(page, concept, 'index.html');
+    await expect(page.locator('html')).not.toHaveClass(/(?:^|\s)js(?:\s|$)/);
+    await expect(page.getByRole('link', { name: 'Services', exact: true }).first()).toBeVisible();
   });
-  await gotoConceptPage(page, concepts[0], 'index.html');
-  await expect(page.locator('html')).not.toHaveClass(/(?:^|\s)js(?:\s|$)/);
-  await expect(page.getByRole('link', { name: 'Services', exact: true }).first()).toBeVisible();
-});
+}
 
-test('configured endpoint failures show an in-page error state', async ({ page }) => {
-  await page.route('**/configured-endpoint', async (route) => {
-    await route.fulfill({ status: 500, body: 'Nope' });
+for (const concept of concepts) {
+  test(`${concept.name} configured endpoint failures show an in-page error state`, async ({ page }) => {
+    await page.route('**/configured-endpoint', async (route) => {
+      await route.fulfill({ status: 500, body: 'Nope' });
+    });
+    await gotoConceptPage(page, concept, 'site-audit.html');
+    await page.evaluate(() => { window.FORM_ENDPOINTS.audit = '/configured-endpoint'; });
+    await completeAudit(page, concept);
+    await page.getByRole('button', { name: concept.auditButton }).click();
+    await expect(page.getByRole('status')).toContainText(/something went wrong/i);
   });
-  await gotoConceptPage(page, concepts[0], 'site-audit.html');
-  await page.evaluate(() => { window.FORM_ENDPOINTS.audit = '/configured-endpoint'; });
-  await completeAudit(page, concepts[0]);
-  await page.getByRole('button', { name: /request a site audit/i }).click();
-  await expect(page.getByRole('status')).toContainText(/something went wrong/i);
-});
+}
 
-test('configured submissions stay single-flight when a keyboard submit is repeated', async ({ page }) => {
-  let submissions = 0;
-  await page.route('**/configured-endpoint', async (route) => {
-    submissions += 1;
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    await route.fulfill({ status: 200, body: '{}' });
+for (const concept of concepts) {
+  test(`${concept.name} configured submissions stay single-flight when a keyboard submit is repeated`, async ({ page }) => {
+    let submissions = 0;
+    await page.route('**/configured-endpoint', async (route) => {
+      submissions += 1;
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await route.fulfill({ status: 200, body: '{}' });
+    });
+    await gotoConceptPage(page, concept, 'site-audit.html');
+    await page.evaluate(() => { window.FORM_ENDPOINTS.audit = '/configured-endpoint'; });
+    await completeAudit(page, concept);
+    const submit = page.getByRole('button', { name: concept.auditButton });
+    await submit.focus();
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('status')).toContainText(/thanks/i);
+    expect(submissions).toBe(1);
   });
-  await gotoConceptPage(page, concepts[0], 'site-audit.html');
-  await page.evaluate(() => { window.FORM_ENDPOINTS.audit = '/configured-endpoint'; });
-  await completeAudit(page, concepts[0]);
-  const submit = page.getByRole('button', { name: /request a site audit/i });
-  await submit.focus();
-  await page.keyboard.press('Enter');
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('status')).toContainText(/thanks/i);
-  expect(submissions).toBe(1);
-});
+}
 
 for (const concept of concepts) {
   test(`${concept.name} settled desktop and mobile screenshots can be captured over local HTTP`, async ({ page }) => {
@@ -231,16 +239,19 @@ for (const concept of concepts) {
   });
 }
 
-test('settleForScreenshot loads and decodes lazy images before capture', async ({ page }) => {
-  await gotoConceptPage(page, concepts[0], 'index.html');
-  await page.evaluate(() => {
+for (const concept of concepts) {
+  test(`${concept.name} settleForScreenshot loads and decodes lazy images before capture`, async ({ page }) => {
+    await gotoConceptPage(page, concept, 'index.html');
+    const probeImage = concept.name === 'Concept 2' ? 'assets/img/hero-local-growth.png' : 'assets/img/hero-digital-operations.png';
+    await page.evaluate((src) => {
     const image = document.createElement('img');
     image.id = 'lazy-screenshot-probe';
     image.loading = 'lazy';
-    image.src = 'assets/img/hero-digital-operations.png';
+    image.src = src;
     image.style.cssText = 'position:absolute; top:100000px;';
     document.body.append(image);
+    }, probeImage);
+    await settleForScreenshot(page);
+    await expect.poll(() => page.locator('#lazy-screenshot-probe').evaluate((image) => image.naturalWidth > 0)).toBe(true);
   });
-  await settleForScreenshot(page);
-  await expect.poll(() => page.locator('#lazy-screenshot-probe').evaluate((image) => image.naturalWidth > 0)).toBe(true);
-});
+}

@@ -45,8 +45,9 @@ test('implemented concepts contain the required deployable pages and self-contai
       const file = path.join(root, page);
       assert.ok(fs.existsSync(file), `${concept.slug}/${page} should exist`);
       const html = fs.readFileSync(file, 'utf8');
+      assert.match(html, /<a\s+class="skip-link"\s+href="#main-content">Skip to (?:content|main content)<\/a>/i, `${concept.slug}/${page} should expose a keyboard skip link before repeated navigation`);
       assert.match(html, /<header\b/i, `${concept.slug}/${page} should include a header landmark`);
-      assert.match(html, /<main\b/i, `${concept.slug}/${page} should include a main landmark`);
+      assert.match(html, /<main\b[^>]*id="main-content"/i, `${concept.slug}/${page} should include a targetable main landmark`);
       assert.match(html, /<footer\b/i, `${concept.slug}/${page} should include a footer landmark`);
       assert.match(html, /assets\/css\/styles\.css/i, `${concept.slug}/${page} should reference local CSS`);
       assert.match(html, /assets\/js\/site\.js/i, `${concept.slug}/${page} should reference local JS`);
@@ -63,6 +64,28 @@ test('concept 1 navigation links stay inside the concept directory', () => {
     }
     assert.doesNotMatch(html, /href="\.\.\/\.\.\//, `${page} should not depend on parent assets`);
   }
+});
+
+test('concept 2 uses a light logo variant in the navy footer', () => {
+  const root = path.join(repoRoot, 'concepts', '02-local-growth-studio');
+  for (const page of requiredPages) {
+    const html = fs.readFileSync(path.join(root, page), 'utf8');
+    const footer = html.match(/<footer\b[\s\S]*?<\/footer>/i)?.[0] ?? '';
+    assert.match(footer, /assets\/logos\/ozmo-logo-(?:cream|white)\.png/i, `${page} footer should use a light logo on the navy footer`);
+    assert.doesNotMatch(footer, /assets\/logos\/ozmo-logo-navy\.png/i, `${page} footer should not use the navy logo on a navy footer`);
+  }
+});
+
+test('concept 2 home uses Lucide-style line icons where they clarify local growth', () => {
+  const html = read('concepts/02-local-growth-studio/index.html');
+  const outcomeGrid = html.match(/<div class="outcome-grid">([\s\S]*?)<\/div>/i)?.[1] ?? '';
+  const serviceGrid = html.match(/<div class="service-grid">([\s\S]*?)<\/div>/i)?.[1] ?? '';
+  const growthPath = html.match(/<ol class="growth-path">([\s\S]*?)<\/ol>/i)?.[1] ?? '';
+  assert.equal((outcomeGrid.match(/class="line-icon"/g) || []).length, 3, 'outcomes should each include a line icon');
+  assert.equal((serviceGrid.match(/class="line-icon"/g) || []).length, 4, 'services should each include a line icon');
+  assert.equal((growthPath.match(/class="stage-icon"/g) || []).length, 5, 'local growth stages should each include a line icon');
+  assert.ok((html.match(/<svg\b[^>]*fill="none"[^>]*stroke="currentColor"/g) || []).length >= 12, 'icons should use inline line SVGs with currentColor strokes');
+  assert.ok((html.match(/aria-hidden="true"/g) || []).length >= 12, 'decorative icons should be hidden from assistive technology');
 });
 
 test('implemented concepts have copied OZMO logo assets', () => {

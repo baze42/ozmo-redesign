@@ -59,6 +59,22 @@ p + p { margin-top: 1rem; }
   box-shadow: 0 0 0 2px var(--terracotta);
 }
 
+.skip-link {
+  position: fixed;
+  z-index: 30;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--navy);
+  color: var(--white);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 180ms var(--ease-standard);
+}
+.skip-link:focus { color: var(--white); transform: translateY(0); }
+
 .site-header {
   position: sticky;
   z-index: 10;
@@ -174,6 +190,25 @@ main > section > ul li + li, main > section > ol li + li { margin-top: 0.65rem; 
 .article-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .article-grid article { display: grid; align-content: start; gap: 0.8rem; }
 
+.line-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--terracotta-100);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--terracotta-700);
+}
+.line-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .growth-path {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -196,20 +231,38 @@ main > section > ul li + li, main > section > ol li + li { margin-top: 0.65rem; 
   counter-increment: local-path;
 }
 .growth-path li::before { color: var(--terracotta); font-family: var(--font-mono); font-size: 0.78rem; content: "0" counter(local-path); }
+.stage-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  background: var(--terracotta-100);
+  color: var(--terracotta-700);
+}
+.stage-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .local-proof { border-top: 3px solid var(--terracotta); }
 .neighborhood-band { background: var(--terracotta-100); }
 .warm-accent { color: var(--terracotta-700); }
 
 .topic-filters { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1.25rem; }
-.topic-filters button {
+.topic-filters a {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--navy-300);
   border-radius: var(--radius-sm);
   background: var(--paper);
   color: var(--navy);
   font-weight: 700;
+  text-decoration: none;
 }
-.topic-filters button:hover { background: var(--terracotta-100); }
+.topic-filters a:hover { background: var(--terracotta-100); }
 
 form {
   display: grid;

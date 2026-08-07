@@ -7,6 +7,10 @@ const formModule = require(path.resolve(__dirname, '../concepts/01-digital-opera
 const conceptRoot = path.resolve(__dirname, '../concepts/01-digital-operations-partner');
 const concept2Module = require(path.resolve(__dirname, '../concepts/02-local-growth-studio/assets/js/site.js'));
 const concept2Root = path.resolve(__dirname, '../concepts/02-local-growth-studio');
+const formConcepts = [
+  { label: 'Concept 1', module: formModule, root: conceptRoot },
+  { label: 'Concept 2', module: concept2Module, root: concept2Root },
+];
 
 test('validateFields reports required email and URL errors', () => {
   const result = formModule.OZMOForms.validateFields(
@@ -236,4 +240,51 @@ test('concept 2 enhancement creates a mobile navigation control from its source 
   assert.equal(header.inserted.node.textContent, 'Menu');
   assert.equal(attributes.get('aria-expanded'), 'false');
   assert.equal(attributes.get('aria-controls'), 'nav-menu');
+});
+
+test('all concept form modules expose equivalent validation and serialization behavior', () => {
+  for (const concept of formConcepts) {
+    const invalid = concept.module.OZMOForms.validateFields(
+      [
+        { name: 'name', label: 'Name', required: true },
+        { name: 'email', label: 'Email', required: true, type: 'email' },
+        { name: 'website', label: 'Website URL', required: false, type: 'url' },
+      ],
+      { name: '', email: 'not-an-email', website: 'not-a-url' }
+    );
+    assert.equal(invalid.valid, false, `${concept.label} should reject invalid required/email/URL values`);
+    assert.equal(invalid.errors.name, 'Name is required.');
+    assert.equal(invalid.errors.email, 'Enter a valid email address.');
+    assert.equal(invalid.errors.website, 'Enter a valid URL that starts with http:// or https://.');
+
+    const valid = concept.module.OZMOForms.validateFields(
+      [
+        { name: 'name', label: 'Name', required: true },
+        { name: 'email', label: 'Email', required: true, type: 'email' },
+        { name: 'website', label: 'Website URL', required: true, type: 'url' },
+      ],
+      { name: 'Pat Owner', email: 'pat@example.com', website: 'https://example.com' }
+    );
+    assert.equal(valid.valid, true, `${concept.label} should accept complete valid values`);
+    assert.deepEqual(valid.errors, {});
+
+    const formData = new FormData();
+    formData.append('services', 'Website support');
+    formData.append('services', 'Lead follow-up');
+    assert.deepEqual(concept.module.OZMOForms.formDataToObject(formData), {
+      services: ['Website support', 'Lead follow-up'],
+    }, `${concept.label} should preserve repeated form values as arrays`);
+    assert.deepEqual(concept.module.FORM_ENDPOINTS, { audit: '', contact: '' }, `${concept.label} should default to static no-network endpoints`);
+  }
+});
+
+test('all concept form modules guard pending submissions and restore controls', () => {
+  for (const concept of formConcepts) {
+    const siteJs = fs.readFileSync(path.join(concept.root, 'assets/js/site.js'), 'utf8');
+    assert.match(siteJs, /form\.dataset\.submitting\s*===\s*['"]true['"]/, `${concept.label} should ignore repeated pending submissions`);
+    assert.match(siteJs, /form\.dataset\.submitting\s*=\s*['"]true['"]/, `${concept.label} should mark pending submissions`);
+    assert.match(siteJs, /if \(button\) button\.disabled\s*=\s*true/, `${concept.label} should disable submit controls while pending`);
+    assert.match(siteJs, /delete form\.dataset\.submitting/, `${concept.label} should clear pending state after submission`);
+    assert.match(siteJs, /if \(button\) button\.disabled\s*=\s*false/, `${concept.label} should restore submit controls after submission`);
+  }
 });

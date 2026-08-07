@@ -95,3 +95,11 @@ test('concept 2 navigation toggle has desktop-hidden and mobile control styling'
   assert.match(mobileToggle, /display:\s*(?:inline-flex|flex)\s*;/, 'the toggle should be visible on mobile');
   assert.match(mobileToggle, /(?:background|border|color):\s*[^;]+;/, 'the mobile toggle should have a visible control treatment');
 });
+
+test('concept 2 styles skip links and local-growth line icons', () => {
+  assert.match(concept2Css, /\.skip-link\s*\{[^}]*position:\s*fixed/is, 'Concept 2 should visually hide skip links until focus');
+  assert.match(concept2Css, /\.skip-link:focus[^{}]*\{[^}]*transform:\s*translateY\(0\)/is, 'Concept 2 skip links should become visible on focus');
+  assert.match(concept2Css, /\.line-icon\s*\{[^}]*display:\s*inline-flex/is, 'Concept 2 line icons should have a stable inline-flex frame');
+  assert.match(concept2Css, /\.line-icon svg\s*\{[^}]*stroke-width:\s*2/is, 'Concept 2 icons should use Lucide-style stroke weight');
+  assert.match(concept2Css, /\.stage-icon\s*\{[^}]*display:\s*inline-flex/is, 'Concept 2 growth-path icons should have a stable inline-flex frame');
+});
