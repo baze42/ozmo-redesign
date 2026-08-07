@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const conceptRoot = path.join(repoRoot, 'concepts', '01-digital-operations-partner');
+const concept2Root = path.join(repoRoot, 'concepts', '02-local-growth-studio');
 
 const pages = {
   home: 'index.html',
@@ -18,6 +19,10 @@ const pages = {
 
 function html(page) {
   return fs.readFileSync(path.join(conceptRoot, page), 'utf8');
+}
+
+function html2(page) {
+  return fs.readFileSync(path.join(concept2Root, page), 'utf8');
 }
 
 function withoutTags(markup) {
@@ -199,5 +204,87 @@ test('generated images use responsive WebP sources, dimensions, and deferred loa
   }
   for (const image of ['owner-focus', 'systems-map']) {
     assert.match(html(pages.home), new RegExp(`<img[^>]+src=["']assets/img/${image}\\.png["'][^>]+loading=["']lazy["']`, 'i'));
+  }
+});
+
+test('concept 2 home follows the local growth StoryBrand flow', () => {
+  const text = withoutTags(html2('index.html'));
+  for (const required of [
+    'Help more local customers find, trust, and choose you',
+    'Be easier to find',
+    'Be easier to trust',
+    'Be easier to choose',
+    'Local growth gets harder when the path is unclear',
+    'A practical studio for the website, content, and follow-up behind local growth',
+    'Website design for local trust',
+    'Local SEO and service-page clarity',
+    'Content and campaign support',
+    'Lead follow-up and simple automation',
+    'Request a site audit',
+    'See the clearest local growth opportunities',
+    'Build the website, content, and follow-up rhythm',
+  ]) {
+    assert.match(text, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+});
+
+test('concept 2 pages include required local growth content', () => {
+  const audit = withoutTags(html2('site-audit.html'));
+  for (const required of [
+    'Local first impression and message clarity',
+    'Maps and local search basics',
+    'Mobile speed and usability',
+    'Service-page clarity',
+    'Trust signals and proof readiness',
+    'Inquiry path and follow-up',
+    'Care and content rhythm',
+    'Name',
+    'Email',
+    'Company',
+    'Website URL',
+    'What local growth goal matters most right now?',
+    'Services you are interested in',
+    'Timeline',
+    'Notes',
+  ]) {
+    assert.match(audit, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+
+  assert.match(withoutTags(html2('about.html')), /we do what we do so you can better do what you do/i);
+
+  const insights = withoutTags(html2('insights.html'));
+  for (const topic of [
+    'How local customers decide whether to trust your website',
+    'What your service pages should answer before someone calls',
+    'Why local SEO starts with clear, useful pages',
+    'Simple ways to keep marketing moving without doing everything',
+    'What to check before boosting a post or running ads',
+    'How faster follow-up helps good local leads choose you',
+  ]) {
+    assert.match(insights, new RegExp(topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+
+  const contact = withoutTags(html2('contact.html'));
+  for (const label of ['Name', 'Email', 'Company', 'Website URL', 'Reason for reaching out', 'Message']) {
+    assert.match(contact, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+});
+
+test('concept 2 public copy avoids forbidden proof and draft language', () => {
+  const forbidden = [
+    /lorem ipsum/i,
+    /fake testimonial/i,
+    /fake client/i,
+    /prototype only/i,
+    /todo/i,
+    /tbd/i,
+    /unfinished/i,
+    /verified result/i,
+  ];
+  for (const page of Object.values(pages)) {
+    const text = withoutTags(html2(page));
+    for (const pattern of forbidden) {
+      assert.doesNotMatch(text, pattern, `${page} should not contain ${pattern}`);
+    }
   }
 });
