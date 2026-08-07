@@ -25,6 +25,16 @@ test('all required image targets exist and are non-empty PNG files', () => {
   }
 });
 
+test('every generated PNG has a smaller WebP delivery derivative', () => {
+  for (const image of images) {
+    const png = path.join(imageRoot, image);
+    const webp = path.join(imageRoot, image.replace(/\.png$/, '.webp'));
+    assert.ok(fs.existsSync(webp), `${image} should have a WebP derivative`);
+    assert.ok(fs.statSync(webp).size < fs.statSync(png).size, `${path.basename(webp)} should be smaller than its PNG original`);
+    assert.equal(fs.readFileSync(webp).subarray(0, 4).toString('ascii'), 'RIFF', `${path.basename(webp)} should be a WebP file`);
+  }
+});
+
 test('prompt documentation names every image target and avoids fake-logo/text artifacts', () => {
   for (const image of images) {
     assert.match(prompts, new RegExp(image.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));

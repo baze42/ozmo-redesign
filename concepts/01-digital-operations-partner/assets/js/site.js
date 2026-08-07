@@ -84,6 +84,8 @@
   async function runSubmit(form, endpoint) {
     const button = form.querySelector('[type="submit"]');
     const status = form.querySelector('[data-form-status]');
+    form.dataset.submitting = 'true';
+    if (button) button.disabled = true;
     button?.classList.add('is-loading');
     button?.setAttribute('aria-busy', 'true');
     if (status) status.textContent = 'Sending your request...';
@@ -98,6 +100,8 @@
     } catch (_error) {
       if (status) status.textContent = 'Something went wrong. Please try again or contact OZMO directly.';
     } finally {
+      delete form.dataset.submitting;
+      if (button) button.disabled = false;
       button?.classList.remove('is-loading');
       button?.setAttribute('aria-busy', 'false');
     }
@@ -106,8 +110,10 @@
   function enhanceForms(documentRef) {
     const forms = Array.from(documentRef.querySelectorAll('[data-ozmo-form]'));
     for (const form of forms) {
+      form.setAttribute('novalidate', '');
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        if (form.dataset.submitting === 'true') return;
         const type = form.getAttribute('data-ozmo-form');
         const fields = Array.from(form.querySelectorAll('[data-field]')).map((element) => ({
           name: element.name,
@@ -127,6 +133,7 @@
   }
 
   function enhanceNavigation(documentRef) {
+    documentRef.documentElement.classList.add('js');
     const toggle = documentRef.querySelector('.nav-toggle');
     const menu = documentRef.querySelector('#nav-menu');
     if (toggle && menu) {

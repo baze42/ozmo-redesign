@@ -178,3 +178,26 @@ test('Insights public copy speaks directly to you', () => {
     assert.doesNotMatch(text, pattern, `insights.html should use direct we/you voice instead of ${pattern}`);
   }
 });
+
+test('home credibility section gives a concrete response standard', () => {
+  assert.match(withoutTags(html(pages.home)), /respond within one business day/i);
+});
+
+test('generated images use responsive WebP sources, dimensions, and deferred loading below the fold', () => {
+  const uses = [
+    ['index.html', 'hero-digital-operations'],
+    ['index.html', 'owner-focus'],
+    ['index.html', 'systems-map'],
+    ['site-audit.html', 'audit-desk'],
+    ['about.html', 'owner-focus'],
+    ['insights.html', 'insights-workshop'],
+  ];
+  for (const [page, image] of uses) {
+    const markup = html(page);
+    const pattern = new RegExp(`<picture>\\s*<source[^>]+srcset=["']assets/img/${image}\\.webp["'][^>]+type=["']image/webp["'][^>]*>\\s*<img[^>]+src=["']assets/img/${image}\\.png["'][^>]+width=["']\\d+["'][^>]+height=["']\\d+["'][^>]*>\\s*</picture>`, 'i');
+    assert.match(markup, pattern, `${page} should serve ${image} through picture with intrinsic dimensions`);
+  }
+  for (const image of ['owner-focus', 'systems-map']) {
+    assert.match(html(pages.home), new RegExp(`<img[^>]+src=["']assets/img/${image}\\.png["'][^>]+loading=["']lazy["']`, 'i'));
+  }
+});

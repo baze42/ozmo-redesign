@@ -16,6 +16,7 @@
   --cream-300: #e6dccb;
   --paper: #FBF8F2;
   --ink: #2A2725;
+  --ink-900: #0f0d0c;
   --ink-600: #57524d;
   --ink-400: #847d75;
   --white: #ffffff;
@@ -93,7 +94,9 @@ a:focus-visible, button:focus-visible, .nav-toggle:focus-visible { text-decorati
 .lead { max-width: 42rem; margin-top: 1.5rem; color: var(--ink-600); font-size: clamp(1.1rem, 2vw, 1.35rem); line-height: 1.65; }
 .section-heading { max-width: 22ch; }
 .hero { padding-block: clamp(4rem, 9vw, 8rem); }
-.hero-grid > img, .guide-grid > img, .image-frame { width: 100%; min-height: 22rem; object-fit: cover; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+.hero-grid > img, .guide-grid > img, .hero-grid > picture, .guide-grid > picture, .image-frame { width: 100%; min-height: 22rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+.hero-grid > picture, .guide-grid > picture { display: block; overflow: hidden; }
+.hero-grid > img, .guide-grid > img, .hero-grid > picture > img, .guide-grid > picture > img { width: 100%; min-height: inherit; object-fit: cover; }
 .hero .button, .hero .text-link { margin-top: 2rem; }
 
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.9rem; padding: 0.75rem 1.1rem; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--white); font-weight: 700; line-height: 1.2; text-align: center; text-decoration: none; transition: transform 180ms var(--ease-standard), box-shadow 180ms var(--ease-standard); }
@@ -103,8 +106,9 @@ a:focus-visible, button:focus-visible, .nav-toggle:focus-visible { text-decorati
 .button-primary:hover { box-shadow: var(--shadow-md); }
 .final-cta .button-primary { border-color: var(--cream); background: var(--cream); color: var(--navy); box-shadow: 0 4px 0 var(--terracotta); }
 .final-cta .button-primary:hover { border-color: var(--terracotta-100); background: var(--terracotta-100); color: var(--navy); }
-.button-secondary { background: var(--terracotta); box-shadow: var(--shadow-terra); }
-.button-energy { background: var(--spark); box-shadow: var(--shadow-terra); animation: spark-pulse 3.5s var(--ease-standard) infinite; }
+.button-secondary { background: var(--terracotta-700); color: var(--white); box-shadow: var(--shadow-terra); }
+.button-energy { background: var(--spark); color: var(--ink-900); box-shadow: var(--shadow-terra); animation: spark-pulse 3.5s var(--ease-standard) infinite; }
+.button-energy:hover { color: var(--ink-900); }
 .button-ghost { border-color: var(--navy-300); background: transparent; color: var(--navy); }
 .button-ghost:hover { color: var(--navy); }
 
@@ -140,8 +144,7 @@ fieldset label { color: var(--ink-600); font-weight: 400; }
 fieldset input { width: auto; min-height: auto; margin-right: 0.5rem; accent-color: var(--terracotta); }
 .check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
 .form-status, .error-message { padding: 0.8rem 1rem; border-radius: var(--radius-sm); }
-.form-status:empty { display: none; }
-.error-message:empty { display: none; }
+.form-status:empty, .error-message:empty { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 .form-status { background: var(--cream-200); color: var(--navy); }
 .error-message { background: var(--terracotta-100); color: var(--terracotta-700); }
 .is-loading { pointer-events: none; opacity: 0.7; }
@@ -197,15 +200,16 @@ fieldset input { width: auto; min-height: auto; margin-right: 0.5rem; accent-col
   .container, .hub-shell { width: min(100% - 2rem, 1200px); }
   .section { padding-block: 4rem; }
   .nav { flex-wrap: wrap; width: min(100% - 2rem, 1200px); min-height: 4.75rem; gap: 0.75rem; }
-  .nav-toggle { display: block; margin-left: auto; }
-  .nav-menu { display: none; flex-basis: 100%; flex-direction: column; gap: 0; padding-top: 0.5rem; }
-  .nav-menu.is-open { display: flex; }
+  html.js .nav-toggle { display: block; margin-left: auto; }
+  .nav-menu { flex-basis: 100%; flex-direction: column; gap: 0; padding-top: 0.5rem; }
+  html.js .nav-menu { display: none; }
+  html.js .nav-menu.is-open { display: flex; }
   .nav-menu a { padding: 0.7rem 0; }
   .nav-menu a::after { display: none; }
   .button-energy { margin-left: auto; animation: none; }
   .split, .grid-2, .grid-3, .hero-grid, .guide-grid, .form-layout, .card-grid, .plan-list, .proof-strip, .footer-grid, .concept-grid, .services-overview .card-grid { grid-template-columns: 1fr; }
   .hero-grid { gap: 2rem; }
-  .hero-grid > img, .guide-grid > img, .image-frame { min-height: 16rem; }
+  .hero-grid > img, .guide-grid > img, .hero-grid > picture, .guide-grid > picture, .image-frame { min-height: 16rem; }
   .audit-list, .checklist, .check-grid, .logo-wall { grid-template-columns: 1fr; }
   .service-row { grid-template-columns: 1fr; gap: 0.5rem; }
 }

@@ -1,8 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
 
 const formModule = require(path.resolve(__dirname, '../concepts/01-digital-operations-partner/assets/js/site.js'));
+const conceptRoot = path.resolve(__dirname, '../concepts/01-digital-operations-partner');
 
 test('validateFields reports required email and URL errors', () => {
   const result = formModule.OZMOForms.validateFields(
@@ -52,4 +54,31 @@ test('formDataToObject preserves repeated form values as arrays', () => {
   assert.deepEqual(formModule.OZMOForms.formDataToObject(formData), {
     services: ['Website design and redesign', 'Automation, CRM, and email workflows'],
   });
+});
+
+test('source forms preserve native validation and have intentional POST fallbacks', () => {
+  for (const page of ['site-audit.html', 'contact.html']) {
+    const html = fs.readFileSync(path.join(conceptRoot, page), 'utf8');
+    const form = html.match(/<form\b[^>]*data-ozmo-form=[^>]*>/i)?.[0] ?? '';
+    assert.doesNotMatch(form, /\bnovalidate\b/i, `${page} should preserve native validation before JavaScript runs`);
+    assert.match(form, /\bmethod=["']post["']/i, `${page} should use POST when JavaScript is unavailable`);
+    assert.match(form, /\baction=["']mailto:[^"']+["']/i, `${page} should provide a deliberate no-JavaScript fallback`);
+    assert.match(html, /<p class="form-status"[^>]*role="status"/i, `${page} status should have status semantics`);
+    assert.match(html, /<p class="error-message"[^>]*role="alert"/i, `${page} errors should have alert semantics`);
+  }
+});
+
+test('enhancement opts out of native validation only after JavaScript loads', () => {
+  const siteJs = fs.readFileSync(path.join(conceptRoot, 'assets/js/site.js'), 'utf8');
+  assert.match(siteJs, /documentRef\.documentElement\.classList\.add\(['"]js['"]\)/);
+  assert.match(siteJs, /form\.setAttribute\(['"]novalidate['"],\s*['"]['"]\)/);
+});
+
+test('enhanced form submissions mark the form pending and disable the submit control', () => {
+  const siteJs = fs.readFileSync(path.join(conceptRoot, 'assets/js/site.js'), 'utf8');
+  assert.match(siteJs, /form\.dataset\.submitting\s*===\s*['"]true['"]/);
+  assert.match(siteJs, /form\.dataset\.submitting\s*=\s*['"]true['"]/);
+  assert.match(siteJs, /if \(button\) button\.disabled\s*=\s*true/);
+  assert.match(siteJs, /delete form\.dataset\.submitting/);
+  assert.match(siteJs, /if \(button\) button\.disabled\s*=\s*false/);
 });
