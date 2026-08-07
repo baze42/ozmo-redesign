@@ -3,15 +3,20 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const siteUrl = pathToFileURL(path.resolve("index.html")).toString();
+const errorsByPage = new WeakMap();
 
 test.beforeEach(async ({ page }) => {
   const errors = [];
+  errorsByPage.set(page, errors);
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(siteUrl);
-  expect(errors).toEqual([]);
+});
+
+test.afterEach(async ({ page }) => {
+  expect(errorsByPage.get(page)).toEqual([]);
 });
 
 test("renders the approved hero and audit CTA", async ({ page }) => {
