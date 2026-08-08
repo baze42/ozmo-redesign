@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildMetadata } from '../lib/seo/metadata';
+
+const metadata = buildMetadata({
+  pathname: '/terms',
+  title: 'Terms of Service',
+  description: 'Owner-approved terms for using OZMO Digital services and website forms.',
+  imagePath: '/assets/og-default.png',
+});
+---
+
+<BaseLayout metadata={metadata}>
+  <section class="policy-shell">
+    <p class="eyebrow">Legal approval required before production launch</p>
+    <h1>Terms of Service</h1>
+    <p>
+      This route is reserved for owner-approved terms copy. The implementation must not ship
+      production terms until OZMO Digital reviews and approves the final language.
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .policy-shell {
+    width: min(780px, calc(100% - 2rem));
+    min-height: 52vh;
+    margin: 0 auto;
+    padding: var(--space-16) 0;
+  }
+
+  .eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 8vw, 4.8rem);
+    line-height: 0.98;
+  }
+
+  p {
+    color: var(--color-muted-ink);
+    font-size: 1.15rem;
+  }
+</style>

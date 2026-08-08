@@ -1,0 +1,91 @@
+---
+import sora600Url from '../assets/fonts/sora-latin-600-normal.woff2?url';
+import sourceSansUrl from '../assets/fonts/source-sans-3-latin-400-normal.woff2?url';
+import favicon16Url from '../assets/brand/favicon-16.png?url';
+import favicon32Url from '../assets/brand/favicon-32.png?url';
+import appleTouchIconUrl from '../assets/brand/apple-touch-icon.png?url';
+import '../styles/global.css';
+
+import Footer from '../components/nav/Footer.astro';
+import Header from '../components/nav/Header.astro';
+import type { MetadataResult } from '../lib/seo/metadata';
+
+type Props = {
+  metadata: MetadataResult;
+  jsonLd?: Array<Record<string, unknown>>;
+};
+
+const { metadata, jsonLd = [] } = Astro.props;
+const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
+const plausibleSrc = import.meta.env.PUBLIC_PLAUSIBLE_SRC || 'https://plausible.io/js/script.js';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{metadata.title}</title>
+    <meta name="description" content={metadata.description} />
+    <meta name="robots" content={metadata.robots} />
+    <link rel="canonical" href={metadata.canonical} />
+    <link rel="preload" href={sora600Url} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={sourceSansUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" type="image/png" sizes="16x16" href={favicon16Url} />
+    <link rel="icon" type="image/png" sizes="32x32" href={favicon32Url} />
+    <link rel="apple-touch-icon" href={appleTouchIconUrl} />
+
+    <meta property="og:type" content={metadata.openGraph.type} />
+    <meta property="og:title" content={metadata.openGraph.title} />
+    <meta property="og:description" content={metadata.openGraph.description} />
+    <meta property="og:url" content={metadata.openGraph.url} />
+    <meta property="og:image" content={metadata.openGraph.image} />
+    <meta name="twitter:card" content={metadata.twitter.card} />
+    <meta name="twitter:title" content={metadata.twitter.title} />
+    <meta name="twitter:description" content={metadata.twitter.description} />
+    <meta name="twitter:image" content={metadata.twitter.image} />
+
+    {
+      jsonLd.map((schema) => (
+        <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
+      ))
+    }
+    {
+      plausibleDomain && (
+        <script is:inline defer data-domain={plausibleDomain} src={plausibleSrc}></script>
+      )
+    }
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <Header />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: var(--space-4);
+    left: var(--space-4);
+    z-index: 100;
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-deep-ink);
+    color: var(--color-white);
+    border-radius: var(--radius-sm);
+    transform: translateY(calc(-100% - var(--space-8)));
+    transition: transform var(--motion-fast) var(--ease-out);
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+
+  main:focus {
+    outline: none;
+  }
+</style>

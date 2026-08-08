@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import sharp from 'sharp';
 
 const brandDir = join(process.cwd(), 'src/assets/brand');
+const publicAssetsDir = join(process.cwd(), 'public/assets');
+const outputDirs = [brandDir, publicAssetsDir];
 
 const colors = {
   cleanSurface: '#FAFAF7',
@@ -91,15 +93,19 @@ function ogSvg(title: string, kicker: string) {
 }
 
 async function writeSvg(name: string, svg: string) {
-  await writeFile(join(brandDir, name), svg);
+  await Promise.all(outputDirs.map((dir) => writeFile(join(dir, name), svg)));
 }
 
 async function writePng(name: string, svg: string, width: number, height = width) {
-  await sharp(Buffer.from(svg)).resize(width, height, { fit: 'contain' }).png().toFile(join(brandDir, name));
+  await Promise.all(
+    outputDirs.map((dir) =>
+      sharp(Buffer.from(svg)).resize(width, height, { fit: 'contain' }).png().toFile(join(dir, name)),
+    ),
+  );
 }
 
 async function main() {
-  await mkdir(brandDir, { recursive: true });
+  await Promise.all(outputDirs.map((dir) => mkdir(dir, { recursive: true })));
 
   const darkLogo = logoSvg({ variant: 'dark' });
   const lightLogo = logoSvg({ variant: 'light' });

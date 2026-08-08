@@ -1,0 +1,80 @@
+---
+const footerLinks = [
+  { href: '/services', label: 'Services' },
+  { href: '/portfolio', label: 'Portfolio' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/contact', label: 'Contact OZMO' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
+  { href: '/cookie-notice', label: 'Cookie notice' },
+];
+---
+
+<footer class="site-footer">
+  <div class="footer-shell">
+    <div class="footer-brand">
+      <strong>OZMO Digital</strong>
+      <p>Fast, polished lead-generation websites for small businesses ready for clearer paths.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      {footerLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+    </nav>
+    <div class="footer-cta">
+      <a href="/free-site-audit">Get a Free Site Review</a>
+      <a href="/schedule?type=discovery">Schedule a Discovery Call</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-deep-ink);
+    color: var(--color-white);
+  }
+
+  .footer-shell {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: var(--space-12) 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+
+  .footer-brand strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+  }
+
+  .footer-brand p {
+    max-width: 32rem;
+    margin: var(--space-3) 0 0;
+    color: color-mix(in srgb, var(--color-white) 78%, transparent);
+  }
+
+  .footer-links,
+  .footer-cta {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .footer-links a,
+  .footer-cta a {
+    color: var(--color-white);
+    text-decoration-color: color-mix(in srgb, var(--color-white) 38%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .footer-cta a:first-child {
+    color: #ffd9c7;
+    font-weight: 600;
+  }
+
+  @media (max-width: 760px) {
+    .footer-shell {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+</style>

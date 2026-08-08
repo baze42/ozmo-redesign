@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildMetadata } from '../lib/seo/metadata';
+
+const metadata = buildMetadata({
+  pathname: '/500',
+  title: 'Server Error',
+  description: 'The requested OZMO Digital page could not be loaded.',
+});
+---
+
+<BaseLayout metadata={metadata}>
+  <section class="error-shell">
+    <p class="eyebrow">500</p>
+    <h1>Something went wrong</h1>
+    <p>The page could not be loaded. Try again, or contact OZMO if the issue continues.</p>
+    <a href="/contact">Contact OZMO</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .error-shell {
+    width: min(720px, calc(100% - 2rem));
+    min-height: 52vh;
+    margin: 0 auto;
+    padding: var(--space-16) 0;
+  }
+
+  .eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 8vw, 4.8rem);
+    line-height: 0.98;
+  }
+
+  p {
+    color: var(--color-muted-ink);
+    font-size: 1.15rem;
+  }
+
+  a {
+    color: var(--color-ozmo-blue);
+    font-weight: 600;
+  }
+</style>

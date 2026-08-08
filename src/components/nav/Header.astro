@@ -1,0 +1,179 @@
+---
+import logoUrl from '../../assets/brand/ozmo-logo.svg?url';
+
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/services', label: 'Services' },
+  { href: '/portfolio', label: 'Portfolio' },
+  { href: '/blog', label: 'Blog' },
+];
+---
+
+<header class="site-header">
+  <nav class="nav-shell" aria-label="Primary">
+    <a class="brand" href="/" aria-label="OZMO Digital home">
+      <img src={logoUrl} alt="OZMO Digital" width="172" height="50" />
+    </a>
+
+    <div class="desktop-links" aria-label="Primary pages">
+      {links.map((link) => <a href={link.href}>{link.label}</a>)}
+    </div>
+
+    <div class="desktop-actions">
+      <a class="secondary-link" href="/schedule?type=discovery">Schedule a Discovery Call</a>
+      <a class="primary-cta" href="/free-site-audit" data-cta="primary_site_review_cta">
+        Get a Free Site Review
+      </a>
+    </div>
+
+    <details class="mobile-menu">
+      <summary aria-label="Open navigation">Menu</summary>
+      <div class="mobile-panel">
+        {links.map((link) => <a href={link.href}>{link.label}</a>)}
+        <a class="primary-cta" href="/free-site-audit" data-cta="primary_site_review_cta">
+          Get a Free Site Review
+        </a>
+        <a class="secondary-link mobile-secondary" href="/schedule?type=discovery">
+          Schedule a Discovery Call
+        </a>
+      </div>
+    </details>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--color-clean-surface) 94%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-line-gray) 72%, transparent);
+    backdrop-filter: blur(16px);
+  }
+
+  .nav-shell {
+    width: min(1120px, calc(100% - 2rem));
+    min-height: 76px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+
+  .brand img {
+    width: 172px;
+    height: auto;
+  }
+
+  .desktop-links,
+  .desktop-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .desktop-links a,
+  .secondary-link {
+    color: var(--color-muted-ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .desktop-links a:hover,
+  .secondary-link:hover {
+    color: var(--color-deep-ink);
+  }
+
+  .primary-cta {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-5);
+    border-radius: 999px;
+    background: var(--color-action-orange-dark);
+    color: var(--color-white);
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background var(--motion-fast) var(--ease-out),
+      transform var(--motion-fast) var(--ease-out);
+  }
+
+  .primary-cta:hover {
+    background: #8f2f00;
+    transform: translateY(-1px);
+  }
+
+  .mobile-menu {
+    display: none;
+  }
+
+  .mobile-menu summary {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-deep-ink);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .mobile-panel {
+    position: absolute;
+    right: var(--space-4);
+    left: var(--space-4);
+    top: calc(100% - var(--space-2));
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--color-white);
+    border: 1px solid var(--color-line-gray);
+    border-radius: var(--radius-md);
+    box-shadow: 0 18px 48px color-mix(in srgb, var(--color-deep-ink) 18%, transparent);
+  }
+
+  .mobile-panel a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    color: var(--color-deep-ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .mobile-panel .primary-cta {
+    color: var(--color-white);
+  }
+
+  .mobile-secondary {
+    justify-content: center;
+    color: var(--color-ozmo-blue) !important;
+  }
+
+  @media (max-width: 880px) {
+    .desktop-links,
+    .desktop-actions {
+      display: none;
+    }
+
+    .mobile-menu {
+      display: block;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .brand img {
+      width: 142px;
+    }
+
+    .nav-shell {
+      width: min(100% - 1rem, 1120px);
+    }
+  }
+</style>
