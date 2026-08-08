@@ -1,0 +1,101 @@
+{
+  "key": "group_ozmo_landing_page",
+  "title": "OZMO Landing Page Fields",
+  "fields": [
+    {
+      "key": "field_ozmo_landing_page_hero_heading",
+      "label": "Hero Heading",
+      "name": "hero_heading",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_landing_page_hero_summary",
+      "label": "Hero Summary",
+      "name": "hero_summary",
+      "type": "textarea",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_landing_page_audience",
+      "label": "Audience",
+      "name": "audience",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_landing_page_sections",
+      "label": "Sections",
+      "name": "sections",
+      "type": "repeater",
+      "required": 1,
+      "sub_fields": [
+        {
+          "key": "field_ozmo_landing_page_section_heading",
+          "label": "Heading",
+          "name": "heading",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_ozmo_landing_page_section_body",
+          "label": "Body",
+          "name": "body",
+          "type": "textarea",
+          "required": 1
+        }
+      ]
+    },
+    {
+      "key": "field_ozmo_landing_page_cta_label",
+      "label": "CTA Label",
+      "name": "cta_label",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_landing_page_cta_url",
+      "label": "CTA URL",
+      "name": "cta_url",
+      "type": "url",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_landing_page_seo_title",
+      "label": "SEO Title",
+      "name": "seo_title",
+      "type": "text",
+      "required": 0
+    },
+    {
+      "key": "field_ozmo_landing_page_seo_description",
+      "label": "SEO Description",
+      "name": "seo_description",
+      "type": "textarea",
+      "required": 0
+    },
+    {
+      "key": "field_ozmo_landing_page_og_image",
+      "label": "Open Graph Image",
+      "name": "og_image",
+      "type": "image",
+      "required": 0,
+      "return_format": "array"
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "landing_page"
+      }
+    ]
+  ],
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "active": true,
+  "show_in_rest": 1
+}

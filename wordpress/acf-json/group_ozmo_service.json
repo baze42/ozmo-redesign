@@ -1,0 +1,110 @@
+{
+  "key": "group_ozmo_service",
+  "title": "OZMO Service Fields",
+  "fields": [
+    {
+      "key": "field_ozmo_service_summary",
+      "label": "Summary",
+      "name": "summary",
+      "type": "textarea",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_service_business_outcomes",
+      "label": "Business Outcomes",
+      "name": "business_outcomes",
+      "type": "repeater",
+      "required": 1,
+      "sub_fields": [
+        {
+          "key": "field_ozmo_service_business_outcome",
+          "label": "Outcome",
+          "name": "outcome",
+          "type": "text",
+          "required": 1
+        }
+      ]
+    },
+    {
+      "key": "field_ozmo_service_body_sections",
+      "label": "Body Sections",
+      "name": "body_sections",
+      "type": "repeater",
+      "required": 1,
+      "sub_fields": [
+        {
+          "key": "field_ozmo_service_section_heading",
+          "label": "Heading",
+          "name": "heading",
+          "type": "text",
+          "required": 1
+        },
+        {
+          "key": "field_ozmo_service_section_body",
+          "label": "Body",
+          "name": "body",
+          "type": "textarea",
+          "required": 1
+        }
+      ]
+    },
+    {
+      "key": "field_ozmo_service_cta_label",
+      "label": "CTA Label",
+      "name": "cta_label",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_service_cta_url",
+      "label": "CTA URL",
+      "name": "cta_url",
+      "type": "url",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_service_sort_order",
+      "label": "Sort Order",
+      "name": "sort_order",
+      "type": "number",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_service_seo_title",
+      "label": "SEO Title",
+      "name": "seo_title",
+      "type": "text",
+      "required": 0
+    },
+    {
+      "key": "field_ozmo_service_seo_description",
+      "label": "SEO Description",
+      "name": "seo_description",
+      "type": "textarea",
+      "required": 0
+    },
+    {
+      "key": "field_ozmo_service_og_image",
+      "label": "Open Graph Image",
+      "name": "og_image",
+      "type": "image",
+      "required": 0,
+      "return_format": "array"
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "service"
+      }
+    ]
+  ],
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "active": true,
+  "show_in_rest": 1
+}

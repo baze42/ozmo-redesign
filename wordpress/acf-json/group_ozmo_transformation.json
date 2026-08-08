@@ -1,0 +1,104 @@
+{
+  "key": "group_ozmo_transformation",
+  "title": "OZMO Transformation Fields",
+  "fields": [
+    {
+      "key": "field_ozmo_transformation_before_state",
+      "label": "Before State",
+      "name": "before_state",
+      "type": "textarea",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_transformation_what_is_not_working",
+      "label": "What Is Not Working",
+      "name": "what_is_not_working",
+      "type": "textarea",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_transformation_improvement_path",
+      "label": "OZMO Improvement Path",
+      "name": "ozmo_improvement_path",
+      "type": "textarea",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_transformation_expected_impact",
+      "label": "Expected Business Impact",
+      "name": "expected_business_impact",
+      "type": "textarea",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_transformation_cta_label",
+      "label": "CTA Label",
+      "name": "cta_label",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_transformation_cta_url",
+      "label": "CTA URL",
+      "name": "cta_url",
+      "type": "url",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_transformation_sort_order",
+      "label": "Sort Order",
+      "name": "sort_order",
+      "type": "number",
+      "required": 1
+    },
+    {
+      "key": "field_ozmo_transformation_mockup_variant",
+      "label": "Mockup Variant",
+      "name": "mockup_variant",
+      "type": "select",
+      "required": 1,
+      "choices": {
+        "service_business": "Service business",
+        "new_business": "New business",
+        "lead_path": "Lead path"
+      }
+    },
+    {
+      "key": "field_ozmo_transformation_seo_title",
+      "label": "SEO Title",
+      "name": "seo_title",
+      "type": "text",
+      "required": 0
+    },
+    {
+      "key": "field_ozmo_transformation_seo_description",
+      "label": "SEO Description",
+      "name": "seo_description",
+      "type": "textarea",
+      "required": 0
+    },
+    {
+      "key": "field_ozmo_transformation_og_image",
+      "label": "Open Graph Image",
+      "name": "og_image",
+      "type": "image",
+      "required": 0,
+      "return_format": "array"
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "transformation"
+      }
+    ]
+  ],
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "active": true,
+  "show_in_rest": 1
+}
