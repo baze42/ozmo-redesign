@@ -1,1 +1,11 @@
 .superpowers/
+node_modules/
+.astro/
+dist/
+.vercel/
+test-results/
+playwright-report/
+coverage/
+.env
+.env.*
+!.env.example
