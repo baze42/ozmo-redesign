@@ -34,6 +34,13 @@ Core positioning:
 
 The site should emphasize high-performing websites first, while also making redesign, rescue, and improvement work feel central to the offer.
 
+Geographic posture:
+
+- OZMO should remain geography-agnostic at launch because the primary audience is broad SMBs.
+- The agency can sell local SEO as a client service without presenting OZMO itself as a local-only business.
+- OZMO's own site should demonstrate local SEO thinking through service content, educational blog posts, and future client examples rather than publishing false or premature local-business structured data.
+- If OZMO later chooses a real primary service area or publishes a real local address, the positioning and schema strategy can be updated to include location-specific pages and LocalBusiness structured data.
+
 ## StoryBrand Messaging
 
 The site should use StoryBrand principles without following a cookie-cutter StoryBrand page pattern.
@@ -272,21 +279,24 @@ The page should also include links to Free Site Audit and Schedule a Call for vi
 
 ## Free Site Audit Flow
 
-The Free Site Audit is the primary conversion path.
+The Free Site Audit is the primary conversion path, but the form must support two visitor states:
 
-The selected audit model is a hybrid:
+1. The visitor has an existing website.
+2. The visitor does not have a website yet.
 
-1. Visitor submits site details.
-2. OZMO prepares a focused review.
-3. Visitor receives an audit summary or next-step communication.
-4. Visitor can schedule a walkthrough call.
+The top-level CTA can remain **Free Site Audit** because it is simple and compelling. Once the visitor enters the form, the UI must clarify the path.
 
-Audit form fields:
+Initial branching question:
+
+- Do you currently have a website?
+  - Yes, I have a website.
+  - No, I need a new website.
+
+Shared form fields:
 
 - Name.
 - Email.
 - Business name.
-- Website URL, optional because some businesses may not have a site yet.
 - What do you need help with?
   - Improve my current site.
   - Build a new site.
@@ -300,46 +310,104 @@ Audit form fields:
   - Schedule an audit walkthrough.
   - Not sure yet.
 
+Existing website path:
+
+- Request type: `existing_site_audit`.
+- Website URL is required.
+- UI label: **Free Site Audit**.
+- OZMO reviews speed, clarity, messaging, SEO basics, trust signals, lead capture, and conversion path.
+- Confirmation copy should say OZMO will review the submitted website and follow up with focused findings.
+
+No-website path:
+
+- Request type: `new_site_readiness_review`.
+- Website URL is hidden or marked not applicable.
+- UI label inside the form: **Website Launch Readiness Review**.
+- Ask for current digital presence instead:
+  - Business type or industry.
+  - Primary service or offer.
+  - Target customer.
+  - Current online presence, optional:
+    - Google Business Profile.
+    - Facebook page.
+    - Instagram profile.
+    - LinkedIn page.
+    - Other listing or profile.
+    - None yet.
+  - What the website needs to help the business do.
+- OZMO reviews launch readiness, positioning clarity, basic search presence, lead-capture needs, and recommended first website structure.
+- Confirmation copy should say OZMO will review the business information and prepare recommended next steps for launching a lead-ready website.
+
+Audit walkthrough timing:
+
+- If the visitor chooses **Send me the audit summary** or **Not sure yet**, show a confirmation state and wait for OZMO to complete the manual review before suggesting a walkthrough.
+- If the visitor chooses **Schedule an audit walkthrough**, do not send them immediately into the public scheduling flow as if findings already exist.
+- Instead, show a confirmation state explaining that OZMO will review the submitted details first, then send a private scheduling link when the audit or readiness review is prepared.
+- The private scheduling link should open the Free Site Audit Walkthrough call type with the audit request already associated where possible.
+- Discovery Calls can still be booked immediately from the general Schedule a Call flow because they do not require prepared findings.
+
 Audit handling:
 
 - Validate server-side.
-- Store the submission.
-- Send an internal notification to OZMO.
-- Send a confirmation email to the visitor.
-- Show a confirmation state with an optional scheduling path.
-- Track status such as new, reviewed, contacted, won, or closed.
+- Store the submission in Postgres.
+- Store the request type as `existing_site_audit` or `new_site_readiness_review`.
+- Send an internal notification to OZMO with the correct request type.
+- Send a confirmation email to the visitor with copy matched to the request type and preferred next step.
+- Track status such as new, reviewed, contacted, ready_to_schedule, scheduled, won, or closed.
 
 ## Schedule A Call Flow
 
-The scheduler should support confirmed booking immediately. It should not use manual approval at launch.
+The scheduler should support confirmed booking for call types that are eligible to book. It should not use manual approval for a slot that has already been offered.
 
 Call types:
 
-- Free Site Audit Walkthrough: 30 minutes.
-- Discovery Call: 30 minutes.
+- Discovery Call: 30 minutes, publicly bookable immediately.
+- Free Site Audit Walkthrough: 30 minutes, bookable through a private scheduling link after OZMO has prepared the audit or readiness review.
+
+Audit walkthrough eligibility:
+
+- Audit walkthrough slots should not be presented immediately after a new audit submission.
+- The admin area should allow OZMO to mark an audit request as `ready_to_schedule`.
+- When an audit request is ready, the system can send the visitor a private scheduling link tied to that request.
+- Once the visitor receives that link, booking a displayed slot should be confirmed immediately after server-side revalidation.
 
 Scheduling behavior:
 
 1. Visitor chooses a call type.
-2. Site requests available slots.
-3. Server checks Google Calendar free/busy.
-4. Server applies OZMO availability rules.
-5. Visitor chooses a slot and enters contact details.
-6. Server rechecks the slot before final booking.
-7. Server creates the Google Calendar event.
-8. Server stores the booking.
-9. Confirmation emails go to the visitor and OZMO.
+2. Site detects the visitor's browser timezone when possible and lets the visitor change it manually.
+3. Site sends the selected call type, date window, and visitor timezone to the server.
+4. Server generates possible slots from OZMO availability rules in the OZMO business timezone.
+5. Server checks Google Calendar free/busy using absolute start/end timestamps.
+6. Server converts available slots into the visitor's selected timezone for display.
+7. Visitor chooses a slot and enters contact details.
+8. Server rechecks the selected slot using canonical UTC timestamps before final booking.
+9. Server creates the Google Calendar event with the correct timezone metadata.
+10. Server stores the booking with UTC timestamps, OZMO timezone, and visitor timezone.
+11. Confirmation emails go to the visitor and OZMO, displaying the appointment in the recipient's relevant timezone.
 
 Availability rules should support:
 
-- Allowed weekdays.
-- Allowed hours.
-- Blocked dates.
+- OZMO business timezone, defaulting to `America/Chicago` unless changed in configuration.
+- Allowed weekdays in OZMO business timezone.
+- Allowed hours in OZMO business timezone.
+- Blocked dates in OZMO business timezone.
 - Minimum notice.
 - Buffer before and after meetings.
 - Max bookings per day if desired.
+- Visitor timezone detection using the browser's `Intl.DateTimeFormat().resolvedOptions().timeZone` when JavaScript is available.
+- Manual timezone override for visitors.
+- Server-side validation of timezone identifiers against valid IANA timezone names.
+- Daylight saving time handling through timezone-aware date utilities, not manual offset math.
 
 The booking system must prevent duplicate bookings by rechecking calendar availability and local booking state before creating the event.
+
+Timezone display requirements:
+
+- The scheduling UI should clearly state the timezone currently being shown.
+- Confirmation screens and emails should display both:
+  - Visitor local time.
+  - OZMO business time.
+- Stored records should use UTC for comparison and database queries, while preserving the visitor-selected timezone for display and email copy.
 
 ## Content Management
 
@@ -362,7 +430,15 @@ Recommended WordPress implementation:
 - Enable REST visibility for custom post types and ACF field groups.
 - Keep private or operational lead data outside WordPress.
 
-Astro should consume WordPress content for public pages. Content should be fetched at build time when possible for speed. Webhooks should trigger frontend rebuilds when WordPress content changes.
+Astro should consume WordPress content for public pages. Content should be fetched at build time when possible for speed.
+
+WordPress publishing and rebuild rules:
+
+- V1 should prerender public marketing pages and blog content by default.
+- Rebuild webhooks should fire only for relevant published-content changes, not every draft edit, autosave, revision, or private CMS update.
+- WordPress preview behavior can use WordPress admin preview links or a later protected Astro preview route. Full visual preview parity is not required for V1.
+- If the blog grows large or frequent edits make rebuilds disruptive, blog index and blog detail routes can be moved to on-demand rendering with cache headers while core marketing pages remain prerendered.
+- The rendering strategy should be reviewed once there are enough posts or publishing frequency to make rebuild time a real operational issue.
 
 ## Technical Architecture
 
@@ -377,9 +453,18 @@ Recommended stack:
 - Database: Postgres for leads, audit requests, bookings, booking holds, and operational status.
 - Email: Resend or Postmark for transactional notifications and confirmations.
 - Calendar: Google Calendar API.
+- Auth: production-ready admin authentication with an explicit admin email allowlist.
 - Frontend hosting: Vercel.
 - Database hosting: Neon Postgres.
 - WordPress hosting: managed WordPress hosting such as Kinsta, Pressable, or WP Engine.
+
+Rendering strategy:
+
+- Use Astro's default static-first approach for public marketing pages and blog routes at launch.
+- Add a Vercel adapter so Astro server actions and selected on-demand routes can run server-side.
+- Use on-demand rendering for protected admin routes, form actions, scheduling endpoints, and any routes that need request-time authentication or live database access.
+- Do not move the whole site to server-rendered mode unless most pages become request-time dynamic.
+- If WordPress publishing frequency or content volume creates rebuild fatigue, move blog routes to cached on-demand rendering while preserving static rendering for the homepage, services, portfolio, audit, schedule landing, and core marketing pages.
 
 Deployment recommendation:
 
@@ -387,6 +472,55 @@ Deployment recommendation:
 - Use Neon Postgres for serverless-friendly lead and booking storage.
 - Host WordPress on a managed WordPress platform with staging, backups, SSL, plugin support, REST API access, and good admin performance.
 - Use a transactional email provider for reliable form and booking notifications.
+
+## Lead Management Access
+
+Private and operational lead data should not be managed in WordPress. WordPress is the public content CMS only.
+
+Because contact submissions, audit requests, and bookings are stored in Postgres, V1 must include a basic protected Astro admin area for OZMO team access.
+
+Protected admin routes:
+
+- `/admin`
+- `/admin/leads`
+- `/admin/leads/[id]`
+- `/admin/audits`
+- `/admin/bookings`
+
+Authentication:
+
+- Use Google OAuth or another production-ready auth provider.
+- Restrict access by an explicit admin email allowlist.
+- Do not build public registration or account management for V1.
+
+Admin capabilities for V1:
+
+- View contact submissions.
+- View Free Site Audit requests.
+- View Website Launch Readiness Review requests.
+- View scheduled calls.
+- Open a lead, audit, or booking detail record.
+- Update lead status:
+  - new
+  - reviewed
+  - contacted
+  - ready_to_schedule
+  - scheduled
+  - won
+  - closed
+- Add internal notes.
+- See timestamps and source page or CTA where available.
+- Export leads as CSV if practical.
+
+Transactional emails are still required, but they are notifications, not the system of record.
+
+Out of scope for V1 admin:
+
+- Full CRM integration.
+- Sales pipeline automation.
+- Multi-user roles beyond an admin allowlist.
+- Client accounts or portals.
+- Automated nurture sequences.
 
 ## Form And Booking Security
 
@@ -415,10 +549,16 @@ SEO requirements:
 - Structured data where useful:
   - Organization.
   - ProfessionalService by default.
-  - LocalBusiness only if OZMO publishes a real local address or local service area.
+  - Do not use LocalBusiness at launch unless OZMO publishes a real local address or defined local service area.
   - BlogPosting.
   - Service.
   - BreadcrumbList.
+
+Local SEO alignment:
+
+- OZMO's own schema should remain geography-agnostic at launch.
+- The Local SEO service should be demonstrated through service content, educational blog posts, and future client examples rather than by forcing LocalBusiness schema onto OZMO's own site prematurely.
+- If OZMO later chooses a specific local market, add location-specific landing pages and LocalBusiness or area-served schema at that time.
 
 ## Performance And Accessibility
 
@@ -453,7 +593,11 @@ Recommended tests:
 - Fallback seed content for local development.
 - Contact form validation.
 - Audit form validation.
+- No-website readiness review branching.
+- Admin authentication and allowlist access.
+- Admin lead status and note updates.
 - Availability rule calculations.
+- Timezone conversion and daylight saving edge cases.
 - Google Calendar free/busy response handling.
 - Booking conflict prevention.
 - Booking confirmation flow.
@@ -490,16 +634,19 @@ Recommended tests:
    - Local fallback seed content.
    - Webhook rebuild plan.
 
-4. **Forms And Lead Storage**
+4. **Forms, Lead Storage, And Admin Access**
    - Contact form.
    - Audit form.
    - Server-side validation.
-   - Postgres lead tables.
+   - Postgres lead, audit, booking, and note tables.
    - Email notifications.
    - Confirmation pages and states.
+   - Protected Astro admin routes for viewing and managing leads.
+   - Admin status updates and internal notes.
 
 5. **Scheduling**
    - Availability rules.
+   - Visitor timezone detection and manual timezone override.
    - Google Calendar free/busy integration.
    - Slot generation.
    - Confirmed booking flow.
@@ -531,7 +678,7 @@ Recommended tests:
 - Industry-specific landing pages.
 - Real client case studies unless available before launch.
 - Testimonials unless real testimonials are available.
-- CRM integration beyond storing lead data and sending notifications.
+- Full CRM integration beyond the basic protected Astro admin lead console.
 - Marketing automation sequences beyond basic follow-up notifications.
 - Client portal functionality.
 - Paid ads landing page variants.
@@ -540,6 +687,7 @@ Recommended tests:
 
 - Astro supports WordPress as a headless CMS through the WordPress REST API.
 - Astro Actions provide type-safe backend logic for forms and server calls.
+- Astro pages are prerendered by default, and selected routes can opt into on-demand rendering when request-time behavior is needed.
 - WordPress REST API exposes public content as JSON and can expose custom post types.
 - Custom post types must be configured for REST access.
 - ACF field groups must opt into REST visibility when their structured fields are needed by Astro.
@@ -550,6 +698,7 @@ Reference URLs:
 
 - https://docs.astro.build/en/guides/cms/wordpress/
 - https://docs.astro.build/en/guides/actions/
+- https://docs.astro.build/en/guides/on-demand-rendering/
 - https://developer.wordpress.org/rest-api/
 - https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-rest-api-support-for-custom-content-types/
 - https://www.advancedcustomfields.com/resources/wp-rest-api-integration/
