@@ -13,7 +13,7 @@
     "serve:dist": "env -u FORCE_COLOR -u NO_COLOR tsx scripts/serve-dist.ts",
     "test:e2e": "env -u FORCE_COLOR -u NO_COLOR playwright test",
     "test:a11y": "env -u FORCE_COLOR -u NO_COLOR playwright test tests/e2e/a11y.spec.ts",
-    "test:lighthouse": "lhci autorun",
+    "test:lighthouse": "CHROME_PATH=$(node -e \"import('playwright').then(({ chromium }) => process.stdout.write(chromium.executablePath()))\") lhci autorun",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "wp:validate": "vitest run tests/unit/wordpress",

@@ -30,3 +30,10 @@ test('keyboard users can reach skip link and primary navigation actions', async 
   await primaryCta.focus();
   await expect(primaryCta).toBeFocused();
 });
+
+test('mobile menu visible label matches its accessible name', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 760 });
+  await page.goto('/');
+
+  await expect(page.locator('summary')).toHaveAccessibleName('Menu');
+});

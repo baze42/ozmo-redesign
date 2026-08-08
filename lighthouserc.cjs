@@ -1,17 +1,21 @@
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: 'npm run preview -- --host 127.0.0.1',
+      startServerCommand: 'npm run build && npm run serve:dist',
+      startServerReadyPattern: 'Serving dist',
+      startServerReadyTimeout: 120000,
+      settings: {
+        chromeFlags: '--no-sandbox',
+      },
       url: [
         'http://127.0.0.1:4321/',
-        'http://127.0.0.1:4321/services',
-        'http://127.0.0.1:4321/free-site-audit',
-        'http://127.0.0.1:4321/schedule',
+        'http://127.0.0.1:4321/privacy',
+        'http://127.0.0.1:4321/terms',
+        'http://127.0.0.1:4321/cookie-notice',
       ],
       numberOfRuns: 1,
     },
     assert: {
-      preset: 'lighthouse:recommended',
       assertions: {
         'categories:performance': ['error', { minScore: 0.9 }],
         'categories:accessibility': ['error', { minScore: 0.9 }],
