@@ -9,8 +9,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command:
-      "env -u FORCE_COLOR -u NO_COLOR npx astro preview stop >/dev/null 2>&1 || true; env -u FORCE_COLOR -u NO_COLOR npm run build && env -u FORCE_COLOR -u NO_COLOR npx astro preview --background --host 127.0.0.1 && trap 'env -u FORCE_COLOR -u NO_COLOR npx astro preview stop >/dev/null 2>&1 || true' EXIT INT TERM; while true; do sleep 1; done",
+    command: 'env -u FORCE_COLOR -u NO_COLOR npm run build && npm run serve:dist',
     url: 'http://127.0.0.1:4321',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
