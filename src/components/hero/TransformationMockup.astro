@@ -1,0 +1,267 @@
+---
+type Props = {
+  state: 'before' | 'after';
+};
+
+const { state } = Astro.props;
+const isAfter = state === 'after';
+const label = isAfter ? 'After' : 'Before';
+---
+
+<article
+  class:list={['mockup-card', isAfter ? 'mockup-card--after' : 'mockup-card--before']}
+  data-testid={isAfter ? 'mockup-after' : 'mockup-before'}
+  aria-label={`${label} abstract website mockup`}
+>
+  <div class="mockup-topline">
+    <span>{label}</span>
+    <span>{isAfter ? 'Lead-ready structure' : 'Unclear path'}</span>
+  </div>
+
+  {
+    isAfter ? (
+      <div class="after-layout" aria-hidden="true">
+        <div class="after-hero">
+          <span class="after-headline"></span>
+          <span class="after-copy"></span>
+          <span class="after-copy short"></span>
+          <span class="after-cta"></span>
+        </div>
+        <div class="after-trust">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="after-form">
+          <span></span>
+          <span></span>
+          <span class="after-submit"></span>
+        </div>
+      </div>
+    ) : (
+      <div class="before-layout" aria-hidden="true">
+        <span class="before-nav one"></span>
+        <span class="before-nav two"></span>
+        <span class="before-block large"></span>
+        <span class="before-block"></span>
+        <span class="before-block offset"></span>
+        <span class="before-weak-cta"></span>
+        <span class="before-noise a"></span>
+        <span class="before-noise b"></span>
+        <span class="before-noise c"></span>
+      </div>
+    )
+  }
+</article>
+
+<style>
+  .mockup-card {
+    min-width: 0;
+    min-height: 20rem;
+    padding: var(--space-4);
+    border: 1px solid var(--color-line-gray);
+    border-radius: var(--radius-md);
+  }
+
+  .mockup-card--before {
+    background: var(--color-before-gray);
+  }
+
+  .mockup-card--after {
+    background: var(--color-after-blue-soft);
+    border-color: var(--color-ozmo-blue);
+    border-width: 2px;
+  }
+
+  .mockup-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    color: var(--color-deep-ink);
+    font-weight: 600;
+  }
+
+  .mockup-card--after .mockup-topline {
+    color: var(--color-ozmo-blue);
+  }
+
+  .mockup-topline span:first-child {
+    text-transform: uppercase;
+    letter-spacing: 0;
+    font-size: 0.82rem;
+  }
+
+  .mockup-topline span:last-child {
+    color: var(--color-muted-ink);
+    font-size: 0.95rem;
+  }
+
+  .before-layout,
+  .after-layout {
+    position: relative;
+    min-height: 15.5rem;
+    overflow: hidden;
+  }
+
+  .before-layout span,
+  .after-layout span {
+    display: block;
+  }
+
+  .before-nav {
+    height: 0.7rem;
+    background: color-mix(in srgb, var(--color-muted-ink) 35%, transparent);
+    border-radius: 999px;
+  }
+
+  .before-nav.one {
+    width: 42%;
+  }
+
+  .before-nav.two {
+    width: 24%;
+    margin: var(--space-3) 0 0 auto;
+  }
+
+  .before-block {
+    width: 62%;
+    height: 2.1rem;
+    margin-top: var(--space-5);
+    background: color-mix(in srgb, var(--color-white) 45%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-muted-ink) 18%, transparent);
+  }
+
+  .before-block.large {
+    width: 78%;
+    height: 3.4rem;
+    margin-top: var(--space-6);
+  }
+
+  .before-block.offset {
+    width: 44%;
+    margin-left: 32%;
+  }
+
+  .before-weak-cta {
+    width: 6.5rem;
+    height: 1.45rem;
+    margin-top: var(--space-4);
+    background: color-mix(in srgb, var(--color-muted-ink) 24%, transparent);
+    border-radius: 999px;
+  }
+
+  .before-noise {
+    position: absolute;
+    background: color-mix(in srgb, var(--color-white) 45%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-muted-ink) 22%, transparent);
+  }
+
+  .before-noise.a {
+    width: 4.8rem;
+    height: 4.8rem;
+    right: 4%;
+    top: 28%;
+  }
+
+  .before-noise.b {
+    width: 6rem;
+    height: 2.8rem;
+    right: 22%;
+    bottom: 4%;
+  }
+
+  .before-noise.c {
+    width: 3.2rem;
+    height: 6.5rem;
+    right: 0;
+    bottom: 12%;
+  }
+
+  .after-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(7rem, 0.8fr);
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .after-hero,
+  .after-trust,
+  .after-form {
+    background: var(--color-white);
+    border: 1px solid color-mix(in srgb, var(--color-ozmo-blue) 22%, transparent);
+    border-radius: var(--radius-sm);
+  }
+
+  .after-hero {
+    min-height: 9rem;
+    padding: var(--space-4);
+  }
+
+  .after-headline {
+    width: 88%;
+    height: 1.35rem;
+    background: var(--color-ozmo-blue);
+    border-radius: 999px;
+  }
+
+  .after-copy {
+    width: 76%;
+    height: 0.7rem;
+    margin-top: var(--space-3);
+    background: color-mix(in srgb, var(--color-ozmo-blue) 34%, transparent);
+    border-radius: 999px;
+  }
+
+  .after-copy.short {
+    width: 52%;
+  }
+
+  .after-cta {
+    width: 8.8rem;
+    height: 2rem;
+    margin-top: var(--space-4);
+    background: var(--color-action-orange-dark);
+    border-radius: 999px;
+  }
+
+  .after-trust {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .after-trust span {
+    height: 2.4rem;
+    background: var(--color-teal-soft);
+    border-left: 4px solid var(--color-signal-teal-dark);
+    border-radius: var(--radius-sm);
+  }
+
+  .after-form {
+    min-height: 9rem;
+    padding: var(--space-3);
+  }
+
+  .after-form span {
+    height: 1.4rem;
+    margin-bottom: var(--space-3);
+    background: color-mix(in srgb, var(--color-line-gray) 42%, transparent);
+    border-radius: var(--radius-sm);
+  }
+
+  .after-form .after-submit {
+    width: 70%;
+    background: var(--color-ozmo-blue);
+    border-radius: 999px;
+  }
+
+  @media (max-width: 520px) {
+    .after-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

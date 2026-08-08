@@ -3,9 +3,9 @@ import { z } from 'zod';
 const optionalString = z.string().optional().default('');
 
 const envSchema = z.object({
-  PUBLIC_SITE_URL: z.url(),
-  PUBLIC_PLAUSIBLE_DOMAIN: z.string().min(1),
-  PUBLIC_PLAUSIBLE_SRC: z.url(),
+  PUBLIC_SITE_URL: z.url().optional().default('https://ozmodigital.com'),
+  PUBLIC_PLAUSIBLE_DOMAIN: z.string().min(1).optional().default('ozmodigital.com'),
+  PUBLIC_PLAUSIBLE_SRC: z.url().optional().default('https://plausible.io/js/script.js'),
 
   WORDPRESS_API_BASE_URL: optionalString,
   WORDPRESS_WEBHOOK_SECRET: optionalString,

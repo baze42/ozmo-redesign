@@ -1,0 +1,132 @@
+---
+import TransformationMockup from './TransformationMockup.astro';
+---
+
+<section class="hero" aria-labelledby="homepage-hero-title">
+  <div class="hero-copy">
+    <p class="eyebrow">Transformation Engine</p>
+    <h1 id="homepage-hero-title">
+      Turn a slow or unclear website into a fast, polished lead path
+    </h1>
+    <p class="lede">
+      OZMO Digital helps small businesses replace dated, confusing, or missing websites with a
+      clear message, stronger structure, and an obvious next step for visitors.
+    </p>
+    <div class="hero-actions" aria-label="Primary homepage actions">
+      <a class="primary-cta" href="/free-site-audit" data-cta="primary_site_review_cta">
+        Get a Free Site Review
+      </a>
+      <a class="secondary-cta" href="/schedule?type=discovery">
+        Schedule a Discovery Call
+      </a>
+    </div>
+  </div>
+
+  <div class="transformation-stage" aria-label="Before and after website transformation">
+    <TransformationMockup state="before" />
+    <TransformationMockup state="after" />
+  </div>
+</section>
+
+<style>
+  .hero {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(3rem, 8vw, 6.5rem) 0 var(--space-16);
+    display: grid;
+    gap: var(--space-10);
+  }
+
+  .hero-copy {
+    max-width: 62rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  h1 {
+    max-width: 13ch;
+    margin: 0;
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 9vw, 7.2rem);
+    line-height: 0.94;
+  }
+
+  .lede {
+    max-width: 45rem;
+    margin: var(--space-6) 0 0;
+    color: var(--color-muted-ink);
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .primary-cta,
+  .secondary-cta {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-5);
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .primary-cta {
+    background: var(--color-action-orange-dark);
+    color: var(--color-white);
+  }
+
+  .secondary-cta {
+    color: var(--color-ozmo-blue);
+    border: 1px solid color-mix(in srgb, var(--color-ozmo-blue) 36%, transparent);
+    background: var(--color-white);
+  }
+
+  .transformation-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+
+  @media (max-width: 760px) {
+    h1 {
+      max-width: 11ch;
+    }
+
+    .transformation-stage {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 399px) {
+    .transformation-stage :global([data-testid='mockup-after']) {
+      order: 1;
+    }
+
+    .transformation-stage :global([data-testid='mockup-before']) {
+      order: 2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .transformation-stage,
+    .transformation-stage * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>

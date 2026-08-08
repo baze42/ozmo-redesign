@@ -9,6 +9,14 @@ const baseEnv = {
 };
 
 describe('getEnv', () => {
+  it('uses safe public defaults when no environment source is provided', () => {
+    const env = getEnv({});
+
+    expect(env.PUBLIC_SITE_URL).toBe('https://ozmodigital.com');
+    expect(env.PUBLIC_PLAUSIBLE_DOMAIN).toBe('ozmodigital.com');
+    expect(env.PUBLIC_PLAUSIBLE_SRC).toBe('https://plausible.io/js/script.js');
+  });
+
   it('returns typed public defaults and launch settings', () => {
     const env = getEnv(baseEnv);
 

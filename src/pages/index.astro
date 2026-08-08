@@ -1,0 +1,18 @@
+---
+import TransformationHero from '../components/hero/TransformationHero.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildMetadata } from '../lib/seo/metadata';
+import { buildOrganizationSchema } from '../lib/seo/schema';
+
+const metadata = buildMetadata({
+  pathname: '/',
+  title: 'OZMO Digital',
+  description:
+    'OZMO Digital turns slow, outdated, unclear, or missing websites into fast, polished lead-generation sites.',
+  imagePath: '/assets/og-home.png',
+});
+---
+
+<BaseLayout metadata={metadata} jsonLd={[buildOrganizationSchema()]}>
+  <TransformationHero />
+</BaseLayout>
