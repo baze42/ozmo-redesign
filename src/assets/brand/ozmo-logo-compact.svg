@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280" role="img" aria-labelledby="title">
+  <title id="title">OZMO Digital</title>
+  <rect width="100%" height="100%" fill="none"/>
+  <g style="color: #FFFFFF">
+    <g transform="translate(74, 18)">
+    <g aria-hidden="true">
+      <circle cx="66" cy="66" r="47.519999999999996" fill="#2B3F8F" />
+      <path d="M 66 66 L 113.52 66 A 47.519999999999996 47.519999999999996 0 0 1 61.248 112.5696 Z" fill="#F45B00" />
+      <circle cx="66" cy="66" r="21.12" fill="currentColor" />
+      <rect x="102.96000000000001" y="5.28" width="23.759999999999998" height="97.67999999999999" fill="#F45B00" />
+    </g>
+  </g>
+  </g>
+  <g font-family="Sora, Arial Rounded MT Bold, Trebuchet MS, Arial, sans-serif" font-weight="700">
+    <text x="42" y="195" fill="#2B3F8F" font-size="68" letter-spacing="0">ozmo</text>
+    <text x="42" y="245" fill="#F45B00" font-size="52" letter-spacing="0">digital</text>
+  </g>
+</svg>

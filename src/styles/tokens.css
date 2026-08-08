@@ -1,0 +1,94 @@
+:root {
+  color-scheme: light;
+
+  --color-clean-surface: #FAFAF7;
+  --color-white: #FFFFFF;
+  --color-deep-ink: #171923;
+  --color-muted-ink: #4B5563;
+  --color-ozmo-blue: #2B3F8F;
+  --color-after-blue-soft: #EEF2FF;
+  --color-ozmo-orange: #F45B00;
+  --color-action-orange-dark: #B23A00;
+  --color-orange-soft: #FFF1E8;
+  --color-signal-teal: #00A6A6;
+  --color-signal-teal-dark: #006B6B;
+  --color-teal-soft: #E6F7F7;
+  --color-before-gray: #D8DDE7;
+  --color-line-gray: #B7C0D0;
+
+  --color-ozmo-orange-role: decoration-only;
+  --color-signal-teal-role: decoration-only;
+  --color-line-gray-role: borders-only;
+
+  --font-display: 'Sora', 'Arial Rounded MT Bold', 'Trebuchet MS', Arial, sans-serif;
+  --font-body: 'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--color-ozmo-blue) 24%, transparent);
+
+  --motion-fast: 150ms;
+  --motion-standard: 220ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('../assets/fonts/sora-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 99%;
+  ascent-override: 94%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('../assets/fonts/sora-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 99%;
+  ascent-override: 94%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('../assets/fonts/source-sans-3-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 100%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('../assets/fonts/source-sans-3-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 100%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
