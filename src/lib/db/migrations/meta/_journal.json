@@ -15,6 +15,13 @@
       "when": 1786236462185,
       "tag": "0001_add_rebuild_events",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786237706570,
+      "tag": "0002_track_rebuild_deployments",
+      "breakpoints": true
     }
   ]
 }

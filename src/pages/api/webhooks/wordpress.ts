@@ -6,6 +6,7 @@ import {
   verifyWordPressWebhook,
 } from '../../../lib/wordpress/webhook';
 import {
+  buildWebhookIpRateLimitKey,
   buildWebhookRateLimitKey,
   getWebhookRateLimiter,
 } from '../../../lib/security/rate-limit';
@@ -13,18 +14,24 @@ import {
 export const prerender = false;
 
 export async function POST(context: APIContext) {
-  const signature = context.request.headers.get('x-ozmo-signature') || '';
   const sourceIp = context.clientAddress || 'unknown';
-  const rateLimit = await getWebhookRateLimiter().limit(
-    buildWebhookRateLimitKey({ sourceIp, signature }),
-  );
+  const rateLimiter = getWebhookRateLimiter();
+  const ipRateLimit = await rateLimiter.limit(buildWebhookIpRateLimitKey(sourceIp));
 
-  if (!rateLimit.success) {
+  if (!ipRateLimit.success) {
     return jsonResponse({ error: 'rate_limited' }, 429);
   }
 
   try {
     const payload = await verifyWordPressWebhook(context.request, { sourceIp });
+    const signatureRateLimit = await rateLimiter.limit(
+      buildWebhookRateLimitKey({ sourceIp, signature: payload.signature }),
+    );
+
+    if (!signatureRateLimit.success) {
+      return jsonResponse({ error: 'rate_limited' }, 429);
+    }
+
     await enqueueRebuildEvent(payload);
 
     return jsonResponse({ queued: true }, 202);

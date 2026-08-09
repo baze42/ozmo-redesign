@@ -29,6 +29,10 @@ export function buildWebhookRateLimitKey(input: {
   return `wordpress:webhook:${sourceIp}:${signatureHash}`;
 }
 
+export function buildWebhookIpRateLimitKey(sourceIp: string | null | undefined) {
+  return `wordpress:webhook:ip:${sanitizeRateLimitPart(sourceIp || 'unknown')}`;
+}
+
 export function createFixedWindowRateLimiter(options: {
   limit: number;
   windowMs: number;
@@ -83,6 +87,12 @@ export function getWebhookRateLimiter(): RateLimiter {
     return upstashRateLimiter;
   }
 
+  if (isProductionRuntime()) {
+    throw new Error(
+      'UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required for production webhook rate limiting.',
+    );
+  }
+
   fallbackRateLimiter ??= createFixedWindowRateLimiter({
     limit: 30,
     windowMs: 60_000,
@@ -115,4 +125,8 @@ export function createUpstashWebhookRateLimiter(): RateLimiter {
 
 function sanitizeRateLimitPart(value: string) {
   return value.trim().replace(/[^a-zA-Z0-9:.-]/g, '_') || 'unknown';
+}
+
+function isProductionRuntime() {
+  return process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
 }

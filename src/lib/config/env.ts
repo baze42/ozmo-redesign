@@ -10,6 +10,11 @@ const envSchema = z.object({
   WORDPRESS_API_BASE_URL: optionalString,
   WORDPRESS_WEBHOOK_SECRET: optionalString,
   VERCEL_DEPLOY_HOOK_URL: optionalString,
+  VERCEL_API_TOKEN: optionalString,
+  VERCEL_PROJECT_ID: optionalString,
+  VERCEL_TEAM_ID: optionalString,
+  VERCEL_DEPLOY_TARGET: z.string().min(1).optional().default('production'),
+  VERCEL_DEPLOY_BRANCH: z.string().min(1).optional().default('main'),
   CRON_SECRET: optionalString,
 
   DATABASE_URL: optionalString,

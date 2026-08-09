@@ -11,11 +11,13 @@ import {
   createInMemoryRebuildEventStore,
   createInMemoryRebuildLockStore,
   createRebuildProcessor,
+  createUpstashRebuildLockStore,
   enqueueRebuildEvent,
   processDueRebuildEvents,
   verifyWordPressWebhook,
   type WordPressWebhookPayload,
 } from '../../../src/lib/wordpress/webhook';
+import type { VercelDeploymentTracker } from '../../../src/lib/vercel/deployments';
 import { POST as processRebuildsPost } from '../../../src/pages/api/cron/process-rebuilds';
 import { POST as wordpressWebhookPost } from '../../../src/pages/api/webhooks/wordpress';
 
@@ -44,6 +46,10 @@ describe('rebuild events schema', () => {
       'deployFinishedAt',
       'deployResponseStatus',
       'deployStartedAt',
+      'deployTriggeredAt',
+      'deploymentId',
+      'deploymentState',
+      'deploymentUrl',
       'error',
       'eventHash',
       'id',
@@ -173,6 +179,24 @@ describe('rebuild enqueueing and processing', () => {
     ]);
   });
 
+  it('does not store duplicate webhook deliveries with the same event hash', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore: createInMemoryRebuildLockStore(),
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(),
+      emailSender: vi.fn(),
+      now: () => new Date('2026-08-09T12:00:00.000Z'),
+    });
+    const payload = verifiedPayload({ contentType: 'post', contentId: 1 });
+
+    await processor.enqueueRebuildEvent(payload);
+    await processor.enqueueRebuildEvent(payload);
+
+    expect(store.records).toHaveLength(1);
+  });
+
   it('triggers one deploy hook for due pending events under a Redis-style lock', async () => {
     const store = createInMemoryRebuildEventStore();
     const fetcher = vi.fn(async () => new Response('queued', { status: 200 }));
@@ -201,13 +225,68 @@ describe('rebuild enqueueing and processing', () => {
       triggered: true,
       processedEvents: 1,
       failedEvents: 0,
-      buildDurationMs: 2_000,
+      buildDurationMs: 0,
+      architectureReviewRequired: false,
+    });
+    expect(store.records[0]).toMatchObject({
+      status: 'triggered',
+      deployTriggeredAt: new Date('2026-08-09T12:02:03.000Z'),
+      processedAt: null,
+      buildDurationMs: null,
+      deployResponseStatus: 200,
+    });
+  });
+
+  it('records completed Vercel deployments and real build duration on a later cron pass', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const deploymentTracker: VercelDeploymentTracker = {
+      findLatestDeploymentStartedAfter: vi.fn(async () => ({
+        id: 'dpl_ready',
+        url: 'ozmo-ready.vercel.app',
+        state: 'READY' as const,
+        createdAt: new Date('2026-08-09T12:02:03.000Z'),
+        buildingAt: new Date('2026-08-09T12:02:10.000Z'),
+        readyAt: new Date('2026-08-09T12:06:40.000Z'),
+        errorCode: null,
+        errorMessage: null,
+      })),
+    };
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore: createInMemoryRebuildLockStore(),
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(async () => new Response('queued', { status: 200 })),
+      deploymentTracker,
+      emailSender: vi.fn(),
+      now: sequenceDates([
+        '2026-08-09T12:00:00.000Z',
+        '2026-08-09T12:02:01.000Z',
+        '2026-08-09T12:02:03.000Z',
+      ]),
+    });
+
+    await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 1 }));
+    await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
+    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:06:45.000Z'));
+
+    expect(deploymentTracker.findLatestDeploymentStartedAfter).toHaveBeenCalledWith({
+      since: new Date('2026-08-09T12:02:03.000Z'),
+    });
+    expect(result).toMatchObject({
+      triggered: false,
+      processedEvents: 1,
+      failedEvents: 0,
+      buildDurationMs: 270_000,
       architectureReviewRequired: false,
     });
     expect(store.records[0]).toMatchObject({
       status: 'completed',
-      processedAt: new Date('2026-08-09T12:02:03.000Z'),
-      deployResponseStatus: 200,
+      deploymentId: 'dpl_ready',
+      deploymentState: 'READY',
+      deploymentUrl: 'ozmo-ready.vercel.app',
+      deployStartedAt: new Date('2026-08-09T12:02:10.000Z'),
+      deployFinishedAt: new Date('2026-08-09T12:06:40.000Z'),
+      buildDurationMs: 270_000,
     });
   });
 
@@ -250,28 +329,95 @@ describe('rebuild enqueueing and processing', () => {
     });
   });
 
-  it('flags build durations above five minutes for architecture review', async () => {
+  it('sends build failure alerts when Vercel reports a failed deployment', async () => {
     const store = createInMemoryRebuildEventStore();
     const emailSender = vi.fn();
+    const deploymentTracker: VercelDeploymentTracker = {
+      findLatestDeploymentStartedAfter: vi.fn(async () => ({
+        id: 'dpl_failed',
+        url: 'ozmo-failed.vercel.app',
+        state: 'ERROR' as const,
+        createdAt: new Date('2026-08-09T12:02:03.000Z'),
+        buildingAt: new Date('2026-08-09T12:02:10.000Z'),
+        readyAt: new Date('2026-08-09T12:02:40.000Z'),
+        errorCode: 'BUILD_FAILED',
+        errorMessage: 'Build command exited with code 1.',
+      })),
+    };
     const processor = createRebuildProcessor({
       eventStore: store,
       lockStore: createInMemoryRebuildLockStore(),
       deployHookUrl: 'https://vercel.example.test/deploy',
       fetcher: vi.fn(async () => new Response('queued', { status: 200 })),
+      deploymentTracker,
       emailSender,
       alertRecipients: ['owner@ozmodigital.com'],
       now: sequenceDates([
         '2026-08-09T12:00:00.000Z',
         '2026-08-09T12:02:01.000Z',
-        '2026-08-09T12:07:02.000Z',
+        '2026-08-09T12:02:03.000Z',
       ]),
     });
 
     await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 1 }));
-    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
+    await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
+    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:45.000Z'));
 
     expect(result).toMatchObject({
-      triggered: true,
+      triggered: false,
+      failedEvents: 1,
+      buildDurationMs: 30_000,
+    });
+    expect(store.records[0]).toMatchObject({
+      status: 'failed',
+      deploymentId: 'dpl_failed',
+      deploymentState: 'ERROR',
+      error: 'Build command exited with code 1.',
+    });
+    expect(emailSender).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining('WordPress rebuild failed'),
+        html: expect.stringContaining('Build command exited with code 1.'),
+      }),
+    );
+  });
+
+  it('flags real Vercel build durations above five minutes for architecture review', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const emailSender = vi.fn();
+    const deploymentTracker: VercelDeploymentTracker = {
+      findLatestDeploymentStartedAfter: vi.fn(async () => ({
+        id: 'dpl_slow',
+        url: 'ozmo-slow.vercel.app',
+        state: 'READY' as const,
+        createdAt: new Date('2026-08-09T12:02:03.000Z'),
+        buildingAt: new Date('2026-08-09T12:02:10.000Z'),
+        readyAt: new Date('2026-08-09T12:07:11.000Z'),
+        errorCode: null,
+        errorMessage: null,
+      })),
+    };
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore: createInMemoryRebuildLockStore(),
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(async () => new Response('queued', { status: 200 })),
+      deploymentTracker,
+      emailSender,
+      alertRecipients: ['owner@ozmodigital.com'],
+      now: sequenceDates([
+        '2026-08-09T12:00:00.000Z',
+        '2026-08-09T12:02:01.000Z',
+        '2026-08-09T12:02:03.000Z',
+      ]),
+    });
+
+    await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 1 }));
+    await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
+    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:07:15.000Z'));
+
+    expect(result).toMatchObject({
+      triggered: false,
       architectureReviewRequired: true,
       buildDurationMs: 301_000,
     });
@@ -296,6 +442,33 @@ describe('rebuild enqueueing and processing', () => {
     await expect(response.json()).resolves.toEqual({
       error: 'unauthorized',
     });
+  });
+});
+
+describe('rebuild locks', () => {
+  it('releases Upstash locks only when the stored owner token still matches', async () => {
+    const set = vi.fn(async (_key: string, _value: string, _options: { nx: true; ex: number }) => 'OK');
+    const evalScript = vi.fn(async (_script: string, _keys: string[], _args: string[]) => 1);
+    const del = vi.fn(async (_key: string) => 1);
+    const redis = {
+      set,
+      eval: evalScript,
+      del,
+    };
+    const lockStore = createUpstashRebuildLockStore(redis as never);
+
+    await expect(lockStore.acquire('wordpress:rebuild:deploy', 300)).resolves.toBe(true);
+    const ownerToken = set.mock.calls[0]?.[1];
+    expect(ownerToken).toEqual(expect.stringMatching(/^[a-f0-9-]{36}$/));
+
+    await lockStore.release('wordpress:rebuild:deploy');
+
+    expect(evalScript).toHaveBeenCalledWith(
+      expect.stringContaining('redis.call("get", KEYS[1])'),
+      ['wordpress:rebuild:deploy'],
+      [ownerToken],
+    );
+    expect(del).not.toHaveBeenCalled();
   });
 });
 
@@ -333,16 +506,33 @@ function signedRequest(payload: Record<string, unknown>, requestSecret = secret)
 }
 
 function verifiedPayload(overrides: Partial<WordPressWebhookPayload> = {}): WordPressWebhookPayload {
+  const contentType = overrides.contentType ?? 'post';
+  const contentId = overrides.contentId ?? 42;
+  const slug = overrides.slug ?? 'why-website-speed-affects-leads';
+  const status = overrides.status ?? 'publish';
+  const transition = overrides.transition ?? 'draft->publish';
+  const timestamp = overrides.timestamp ?? '2026-08-09T12:00:00.000Z';
+  const rawBody =
+    overrides.rawBody ??
+    JSON.stringify({
+      content_type: contentType,
+      content_id: contentId,
+      slug,
+      status,
+      transition,
+      timestamp,
+    });
+
   return {
-    contentType: 'post',
-    contentId: 42,
-    slug: 'why-website-speed-affects-leads',
-    status: 'publish',
-    transition: 'draft->publish',
-    timestamp: '2026-08-09T12:00:00.000Z',
+    contentType,
+    contentId,
+    slug,
+    status,
+    transition,
+    timestamp,
     signature: 'signature',
     sourceIp: '203.0.113.10',
-    rawBody: JSON.stringify(basePayload),
+    rawBody,
     ...overrides,
   };
 }

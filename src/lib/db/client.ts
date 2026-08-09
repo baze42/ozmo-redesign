@@ -5,7 +5,7 @@ import { getEnv } from '../config/env';
 
 import * as schema from './schema';
 
-type Database = ReturnType<typeof drizzle<typeof schema>>;
+export type Database = ReturnType<typeof drizzle<typeof schema>>;
 
 let database: Database | null = null;
 

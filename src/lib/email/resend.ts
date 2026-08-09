@@ -40,7 +40,7 @@ export async function sendEmail(message: EmailMessage) {
   const sender = getActiveEmailSender();
 
   if (!sender) {
-    return;
+    throw new Error('RESEND_API_KEY and RESEND_FROM_EMAIL are required before sending email.');
   }
 
   await sender(message);

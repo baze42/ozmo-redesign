@@ -1,9 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  buildWebhookIpRateLimitKey,
   buildWebhookRateLimitKey,
   createFixedWindowRateLimiter,
+  getWebhookRateLimiter,
 } from '../../../src/lib/security/rate-limit';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe('buildWebhookRateLimitKey', () => {
   it('combines source IP and signature without exposing the raw signature', () => {
@@ -23,6 +29,25 @@ describe('buildWebhookRateLimitKey', () => {
     });
 
     expect(key).toContain('wordpress:webhook:unknown:');
+  });
+});
+
+describe('buildWebhookIpRateLimitKey', () => {
+  it('uses a source-IP-only bucket before signature verification', () => {
+    expect(buildWebhookIpRateLimitKey('203.0.113.10')).toBe('wordpress:webhook:ip:203.0.113.10');
+    expect(buildWebhookIpRateLimitKey('')).toBe('wordpress:webhook:ip:unknown');
+  });
+});
+
+describe('getWebhookRateLimiter', () => {
+  it('rejects in-memory webhook rate limiting in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('UPSTASH_REDIS_REST_URL', '');
+    vi.stubEnv('UPSTASH_REDIS_REST_TOKEN', '');
+
+    expect(() => getWebhookRateLimiter()).toThrow(
+      'UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required',
+    );
   });
 });
 
