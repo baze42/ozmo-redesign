@@ -1,0 +1,21 @@
+CREATE TABLE "rebuild_events" (
+	"id" text PRIMARY KEY NOT NULL,
+	"source" text DEFAULT 'wordpress' NOT NULL,
+	"content_type" text NOT NULL,
+	"content_id" text NOT NULL,
+	"slug" text NOT NULL,
+	"transition" text NOT NULL,
+	"status" text DEFAULT 'pending' NOT NULL,
+	"payload" jsonb NOT NULL,
+	"event_hash" text NOT NULL,
+	"source_ip" text NOT NULL,
+	"received_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"scheduled_at" timestamp with time zone NOT NULL,
+	"processed_at" timestamp with time zone,
+	"deploy_started_at" timestamp with time zone,
+	"deploy_finished_at" timestamp with time zone,
+	"build_duration_ms" integer,
+	"deploy_response_status" integer,
+	"error" text,
+	"long_build_review_required" boolean DEFAULT false NOT NULL
+);

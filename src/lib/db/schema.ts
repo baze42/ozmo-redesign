@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const contentSnapshots = pgTable('content_snapshots', {
   contentType: text('content_type').notNull(),
@@ -7,4 +7,26 @@ export const contentSnapshots = pgTable('content_snapshots', {
   payloadHash: text('payload_hash').notNull(),
   capturedAt: timestamp('captured_at', { withTimezone: true }).notNull().defaultNow(),
   usedAt: timestamp('used_at', { withTimezone: true }),
+});
+
+export const rebuildEvents = pgTable('rebuild_events', {
+  id: text('id').primaryKey(),
+  source: text('source').notNull().default('wordpress'),
+  contentType: text('content_type').notNull(),
+  contentId: text('content_id').notNull(),
+  slug: text('slug').notNull(),
+  transition: text('transition').notNull(),
+  status: text('status').notNull().default('pending'),
+  payload: jsonb('payload').notNull(),
+  eventHash: text('event_hash').notNull(),
+  sourceIp: text('source_ip').notNull(),
+  receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
+  scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
+  processedAt: timestamp('processed_at', { withTimezone: true }),
+  deployStartedAt: timestamp('deploy_started_at', { withTimezone: true }),
+  deployFinishedAt: timestamp('deploy_finished_at', { withTimezone: true }),
+  buildDurationMs: integer('build_duration_ms'),
+  deployResponseStatus: integer('deploy_response_status'),
+  error: text('error'),
+  longBuildReviewRequired: boolean('long_build_review_required').notNull().default(false),
 });
