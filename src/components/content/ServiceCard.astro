@@ -1,0 +1,176 @@
+---
+import type { ServiceViewModel } from '../../lib/wordpress/mappers';
+
+type Props = {
+  service: ServiceViewModel;
+  compact?: boolean;
+};
+
+const { service, compact = false } = Astro.props;
+const HeadingTag = compact ? 'h3' : 'h2';
+---
+
+<article class:list={['service-card', { compact }]} id={service.slug} data-testid="service-card">
+  <div class="service-topline">
+    <span>Service</span>
+  </div>
+  <HeadingTag>
+    <a href={`/services#${service.slug}`}>{service.title}</a>
+  </HeadingTag>
+  <p class="summary">{service.summary}</p>
+
+  <div class="outcomes">
+    <p>Business outcomes</p>
+    <ul>
+      {service.businessOutcomes.map((outcome) => <li>{outcome}</li>)}
+    </ul>
+  </div>
+
+  {
+    !compact && (
+      <div class="sections">
+        {service.sections.map((section) => (
+          <section aria-labelledby={`${service.slug}-${section.heading.toLowerCase().replace(/\s+/g, '-')}`}>
+            <h3 id={`${service.slug}-${section.heading.toLowerCase().replace(/\s+/g, '-')}`}>
+              {section.heading}
+            </h3>
+            <p>{section.body}</p>
+          </section>
+        ))}
+      </div>
+    )
+  }
+
+  <a class="card-cta" href={service.cta.url}>{service.cta.label}</a>
+</article>
+
+<style>
+  .service-card {
+    min-height: 100%;
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--color-white);
+    border: 1px solid color-mix(in srgb, var(--color-line-gray) 74%, transparent);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 34px color-mix(in srgb, var(--color-deep-ink) 7%, transparent);
+  }
+
+  .service-card.compact {
+    align-content: start;
+  }
+
+  .service-topline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-ozmo-blue);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  .service-topline::before {
+    content: '';
+    width: 1.7rem;
+    height: 0.32rem;
+    background: var(--color-signal-teal);
+  }
+
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h2,
+  h3 {
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    line-height: 1.08;
+  }
+
+  h2 {
+    font-size: clamp(1.55rem, 3vw, 2rem);
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  h2 a,
+  h3 a {
+    text-decoration: none;
+  }
+
+  h2 a:hover,
+  h3 a:hover {
+    color: var(--color-ozmo-blue);
+  }
+
+  .summary {
+    color: var(--color-muted-ink);
+    font-size: 1.03rem;
+  }
+
+  .outcomes {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .outcomes p {
+    color: var(--color-deep-ink);
+    font-weight: 600;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  li {
+    padding: var(--space-1) var(--space-3);
+    color: var(--color-signal-teal-dark);
+    background: var(--color-teal-soft);
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 600;
+  }
+
+  .sections {
+    display: grid;
+    gap: var(--space-4);
+    padding-top: var(--space-2);
+    border-top: 1px solid color-mix(in srgb, var(--color-line-gray) 62%, transparent);
+  }
+
+  .sections section {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .sections h3 {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .sections p {
+    color: var(--color-muted-ink);
+  }
+
+  .card-cta {
+    width: fit-content;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+    text-decoration-thickness: 1px;
+  }
+</style>

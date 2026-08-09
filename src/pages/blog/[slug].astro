@@ -1,0 +1,192 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buildMetadata } from '../../lib/seo/metadata';
+import {
+  buildBlogPostingSchema,
+  buildBreadcrumbSchema,
+  buildOrganizationSchema,
+} from '../../lib/seo/schema';
+import { getBuildPosts } from '../../lib/wordpress/content';
+import type { PostViewModel } from '../../lib/wordpress/mappers';
+
+type Props = {
+  post: PostViewModel;
+};
+
+export async function getStaticPaths() {
+  const posts = await getBuildPosts();
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const metadata = buildMetadata({
+  pathname: post.canonicalPath,
+  title: post.seo.title,
+  description: post.seo.description,
+  imagePath: post.seo.ogImage?.url ?? '/assets/og-blog.png',
+});
+const publishedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+const blogPostingSchema = buildBlogPostingSchema({
+  headline: post.title,
+  description: post.excerpt,
+  url: metadata.canonical,
+  datePublished: post.publishedAt,
+  dateModified: post.updatedAt,
+});
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: 'Home', url: 'https://ozmodigital.com/' },
+  { name: 'Blog', url: 'https://ozmodigital.com/blog' },
+  { name: post.title, url: metadata.canonical },
+]);
+const jsonLdGraph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    graphNode(blogPostingSchema),
+    graphNode(buildOrganizationSchema()),
+    graphNode(breadcrumbSchema),
+  ],
+};
+
+function graphNode(schema: Record<string, unknown>) {
+  const { ['@context']: _context, ...node } = schema;
+
+  return node;
+}
+---
+
+<BaseLayout metadata={metadata} jsonLd={[jsonLdGraph]}>
+  <article class="post" aria-labelledby="post-title">
+    <header class="post-header">
+      <a class="back-link" href="/blog">Blog</a>
+      <h1 id="post-title">{post.title}</h1>
+      <p>{post.excerpt}</p>
+      <time datetime={post.publishedAt}>{publishedDate}</time>
+    </header>
+
+    <div class="post-body" set:html={post.contentHtml} />
+
+    <section class="review-cta" aria-labelledby="blog-review-title">
+      <p class="eyebrow">Site review</p>
+      <h2 id="blog-review-title">Turn the notes into a practical next step.</h2>
+      <p>
+        If this sounds like the kind of friction your website may have, OZMO can review the current
+        path and identify the clearest improvements.
+      </p>
+      <a href="/free-site-audit">Get a Free Site Review</a>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .post {
+    width: min(760px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(3rem, 7vw, 5.5rem) 0 var(--space-16);
+  }
+
+  .post-header,
+  .post-body,
+  .review-cta {
+    display: grid;
+  }
+
+  .post-header {
+    gap: var(--space-4);
+    padding-bottom: var(--space-10);
+  }
+
+  .back-link {
+    width: fit-content;
+    color: var(--color-ozmo-blue);
+    font-weight: 600;
+  }
+
+  h1,
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h1,
+  h2 {
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    line-height: 1.04;
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 7vw, 5rem);
+  }
+
+  h2 {
+    max-width: 14ch;
+    font-size: clamp(1.85rem, 4vw, 3rem);
+  }
+
+  .post-header p {
+    color: var(--color-muted-ink);
+    font-size: clamp(1.06rem, 2vw, 1.24rem);
+  }
+
+  time {
+    color: var(--color-ozmo-blue);
+    font-weight: 600;
+  }
+
+  .post-body {
+    gap: var(--space-5);
+    color: var(--color-deep-ink);
+    font-size: 1.12rem;
+  }
+
+  .post-body :global(p) {
+    margin: 0;
+  }
+
+  .post-body :global(a) {
+    color: var(--color-ozmo-blue);
+    font-weight: 600;
+  }
+
+  .review-cta {
+    gap: var(--space-4);
+    margin-top: var(--space-12);
+    padding: var(--space-7, 1.75rem);
+    background: var(--color-after-blue-soft);
+    border: 1px solid color-mix(in srgb, var(--color-ozmo-blue) 22%, transparent);
+    border-radius: var(--radius-md);
+  }
+
+  .eyebrow {
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  .review-cta > p:not(.eyebrow) {
+    color: var(--color-muted-ink);
+  }
+
+  .review-cta a {
+    min-height: 48px;
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-5);
+    background: var(--color-action-orange-dark);
+    color: var(--color-white);
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

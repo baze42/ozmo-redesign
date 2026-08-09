@@ -1,0 +1,149 @@
+---
+import BlogCard from '../../components/content/BlogCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buildMetadata } from '../../lib/seo/metadata';
+import { buildOrganizationSchema } from '../../lib/seo/schema';
+import { getBlogIndexRobots, getBuildPosts } from '../../lib/wordpress/content';
+
+const posts = await getBuildPosts();
+const isLaunchReady = posts.length >= 3;
+const metadata = buildMetadata({
+  pathname: '/blog',
+  title: 'Blog',
+  description: 'Useful notes before you rebuild a small business website.',
+  imagePath: '/assets/og-blog.png',
+  robots: getBlogIndexRobots(posts),
+});
+---
+
+<BaseLayout metadata={metadata} jsonLd={[buildOrganizationSchema()]}>
+  <section class="page-hero" aria-labelledby="blog-title">
+    <div class="hero-shell">
+      <p class="eyebrow">Blog</p>
+      <h1 id="blog-title">Useful notes before you rebuild</h1>
+      <p>
+        Practical writing about website speed, message clarity, lead paths, and the decisions that
+        shape a stronger small business site.
+      </p>
+    </div>
+  </section>
+
+  {
+    isLaunchReady ? (
+      <section class="post-list" aria-label="Blog posts">
+        <div class="post-grid">
+          {posts.map((post) => (
+            <BlogCard post={post} />
+          ))}
+        </div>
+      </section>
+    ) : (
+      <section class="empty-state" aria-labelledby="prelaunch-blog-title">
+        <p class="eyebrow">Notes in progress</p>
+        <h2 id="prelaunch-blog-title">The blog will open after the launch set is ready.</h2>
+        <p>
+          The site review path is available now for businesses that want a practical look at their
+          current website.
+        </p>
+        <a href="/free-site-audit">Get a Free Site Review</a>
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .page-hero,
+  .post-list,
+  .empty-state {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  .page-hero {
+    padding: clamp(3rem, 7vw, 5.5rem) 0 var(--space-12);
+  }
+
+  .hero-shell,
+  .empty-state {
+    max-width: 58rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  h1,
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h1,
+  h2 {
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    line-height: 1.02;
+  }
+
+  h1 {
+    max-width: 13ch;
+    font-size: clamp(2.8rem, 8vw, 5.9rem);
+  }
+
+  h2 {
+    max-width: 14ch;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .hero-shell > p:last-child,
+  .empty-state > p:not(.eyebrow) {
+    max-width: 43rem;
+    margin-top: var(--space-5);
+    color: var(--color-muted-ink);
+    font-size: clamp(1.05rem, 2vw, 1.22rem);
+  }
+
+  .post-list,
+  .empty-state {
+    padding-bottom: var(--space-16);
+  }
+
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+
+  .empty-state {
+    padding: var(--space-8);
+    background: var(--color-white);
+    border: 1px solid color-mix(in srgb, var(--color-line-gray) 74%, transparent);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 34px color-mix(in srgb, var(--color-deep-ink) 7%, transparent);
+  }
+
+  .empty-state a {
+    min-height: 48px;
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: var(--space-6);
+    padding: 0 var(--space-5);
+    background: var(--color-action-orange-dark);
+    color: var(--color-white);
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (max-width: 900px) {
+    .post-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

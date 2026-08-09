@@ -26,6 +26,8 @@ const requiredPaths = [
   '/admin/bookings',
   '/404',
   '/500',
+  '/rss.xml',
+  '/robots.txt',
 ];
 
 describe('route inventory', () => {
@@ -49,7 +51,11 @@ describe('route inventory', () => {
 
     expect(sitemapPaths).toContain('/');
     expect(sitemapPaths).toContain('/services');
+    expect(sitemapPaths).toContain('/portfolio');
+    expect(sitemapPaths).toContain('/blog');
     expect(sitemapPaths).toContain('/privacy');
+    expect(sitemapPaths).toContain('/rss.xml');
+    expect(sitemapPaths).not.toContain('/robots.txt');
     expect(sitemapPaths).not.toContain('/admin');
     expect(sitemapPaths).not.toContain('/thank-you/contact');
     expect(sitemapPaths).not.toContain('/schedule/review/[token]');

@@ -39,4 +39,15 @@ describe('buildMetadata', () => {
 
     expect(metadata.robots).toBe('noindex, nofollow');
   });
+
+  it('allows page-level robots overrides for content inventory gates', () => {
+    const metadata = buildMetadata({
+      pathname: '/blog',
+      title: 'Blog',
+      description: 'Useful notes before you rebuild.',
+      robots: 'noindex, follow',
+    });
+
+    expect(metadata.robots).toBe('noindex, follow');
+  });
 });

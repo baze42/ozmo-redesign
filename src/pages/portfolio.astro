@@ -1,0 +1,145 @@
+---
+import TransformationCard from '../components/content/TransformationCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildMetadata } from '../lib/seo/metadata';
+import { buildOrganizationSchema } from '../lib/seo/schema';
+import { getBuildTransformations } from '../lib/wordpress/content';
+
+const transformations = await getBuildTransformations();
+const metadata = buildMetadata({
+  pathname: '/portfolio',
+  title: 'Transformation examples',
+  description:
+    'Qualitative before-and-after website transformation examples for small business lead paths.',
+  imagePath: '/assets/og-portfolio.png',
+});
+---
+
+<BaseLayout metadata={metadata} jsonLd={[buildOrganizationSchema()]}>
+  <section class="page-hero" aria-labelledby="portfolio-title">
+    <div class="hero-shell">
+      <p class="eyebrow">Transformation examples</p>
+      <h1 id="portfolio-title">Transformation examples</h1>
+      <p>
+        Common website problems, the improvement path OZMO would take, and the kind of practical
+        business impact a clearer site should support.
+      </p>
+    </div>
+  </section>
+
+  <section class="transformations" aria-label="Website transformation examples">
+    <div class="transformation-grid">
+      {
+        transformations.map((transformation) => (
+          <TransformationCard transformation={transformation} />
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="review-band" aria-labelledby="portfolio-review-title">
+    <div>
+      <p class="eyebrow">Use your own site as the starting point</p>
+      <h2 id="portfolio-review-title">See where the current path loses momentum.</h2>
+    </div>
+    <a href="/free-site-audit">Get a Free Site Review</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .page-hero,
+  .transformations,
+  .review-band {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  .page-hero {
+    padding: clamp(3rem, 7vw, 5.5rem) 0 var(--space-12);
+  }
+
+  .hero-shell {
+    max-width: 58rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  h1,
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h1,
+  h2 {
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    line-height: 1.02;
+  }
+
+  h1 {
+    max-width: 11ch;
+    font-size: clamp(2.8rem, 8vw, 5.9rem);
+  }
+
+  h2 {
+    max-width: 16ch;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .hero-shell > p:last-child {
+    max-width: 43rem;
+    margin-top: var(--space-5);
+    color: var(--color-muted-ink);
+    font-size: clamp(1.05rem, 2vw, 1.22rem);
+  }
+
+  .transformations {
+    padding-bottom: var(--space-16);
+  }
+
+  .transformation-grid {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .review-band {
+    margin-bottom: var(--space-16);
+    padding: var(--space-8);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    background: var(--color-after-blue-soft);
+    border: 1px solid color-mix(in srgb, var(--color-ozmo-blue) 22%, transparent);
+    border-radius: var(--radius-md);
+  }
+
+  .review-band a {
+    min-height: 48px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-5);
+    background: var(--color-action-orange-dark);
+    color: var(--color-white);
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (max-width: 760px) {
+    .review-band {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: var(--space-6);
+    }
+  }
+</style>

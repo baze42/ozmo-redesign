@@ -1,0 +1,148 @@
+---
+import type { TransformationViewModel } from '../../lib/wordpress/mappers';
+
+type Props = {
+  transformation: TransformationViewModel;
+  compact?: boolean;
+};
+
+const { transformation, compact = false } = Astro.props;
+---
+
+<article class:list={['transformation-card', { compact }]} data-testid="transformation-card">
+  <div class="mockup-strip" aria-hidden="true">
+    <span class="before"></span>
+    <span class="after"></span>
+  </div>
+
+  <div class="copy">
+    <h3>{transformation.title}</h3>
+
+    <dl>
+      <div>
+        <dt>Before state</dt>
+        <dd>{transformation.beforeState}</dd>
+      </div>
+      {
+        !compact && (
+          <div>
+            <dt>What is not working</dt>
+            <dd>{transformation.whatIsNotWorking}</dd>
+          </div>
+        )
+      }
+      <div>
+        <dt>OZMO improvement path</dt>
+        <dd>{transformation.ozmoImprovementPath}</dd>
+      </div>
+      <div>
+        <dt>Expected business impact</dt>
+        <dd data-testid="transformation-impact">{transformation.expectedBusinessImpact}</dd>
+      </div>
+    </dl>
+
+    <a href={transformation.cta.url}>{transformation.cta.label}</a>
+  </div>
+</article>
+
+<style>
+  .transformation-card {
+    min-height: 100%;
+    display: grid;
+    grid-template-columns: minmax(4.5rem, 0.25fr) minmax(0, 1fr);
+    gap: var(--space-5);
+    padding: var(--space-5);
+    background: var(--color-white);
+    border: 1px solid color-mix(in srgb, var(--color-line-gray) 74%, transparent);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 34px color-mix(in srgb, var(--color-deep-ink) 7%, transparent);
+  }
+
+  .transformation-card.compact {
+    grid-template-columns: 1fr;
+  }
+
+  .mockup-strip {
+    min-height: 100%;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .mockup-strip span {
+    min-height: 5.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .before {
+    background:
+      linear-gradient(var(--color-before-gray) 0 0) 16px 18px / 54% 8px no-repeat,
+      linear-gradient(var(--color-line-gray) 0 0) 16px 36px / 74% 6px no-repeat,
+      linear-gradient(var(--color-line-gray) 0 0) 16px 50px / 62% 6px no-repeat,
+      var(--color-clean-surface);
+    border: 1px solid var(--color-line-gray);
+  }
+
+  .after {
+    background:
+      linear-gradient(var(--color-ozmo-blue) 0 0) 16px 18px / 66% 10px no-repeat,
+      linear-gradient(var(--color-signal-teal) 0 0) 16px 42px / 44% 8px no-repeat,
+      linear-gradient(var(--color-orange-soft) 0 0) 16px 62px / 74% 18px no-repeat,
+      var(--color-after-blue-soft);
+    border: 1px solid color-mix(in srgb, var(--color-ozmo-blue) 28%, transparent);
+  }
+
+  .copy,
+  dl {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  h3,
+  dl,
+  dd {
+    margin: 0;
+  }
+
+  h3 {
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    line-height: 1.08;
+  }
+
+  dl div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  dt {
+    color: var(--color-ozmo-blue);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  dd {
+    color: var(--color-muted-ink);
+  }
+
+  a {
+    width: fit-content;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+  }
+
+  @media (max-width: 680px) {
+    .transformation-card {
+      grid-template-columns: 1fr;
+    }
+
+    .mockup-strip {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

@@ -6,7 +6,10 @@ export type MetadataInput = {
   title: string;
   description: string;
   imagePath?: string;
+  robots?: RobotsMeta;
 };
+
+export type RobotsMeta = 'index, follow' | 'noindex, follow' | 'noindex, nofollow';
 
 export type MetadataResult = {
   title: string;
@@ -45,7 +48,11 @@ export function buildMetadata(input: MetadataInput): MetadataResult {
   const canonical = absoluteUrl(input.pathname);
   const image = absoluteUrl(input.imagePath ?? '/assets/og-default.png');
   const routePolicy = getRobotsForRoute(input.pathname);
-  const robots = routePolicy.index ? 'index, follow' : 'noindex, nofollow';
+  const robots =
+    input.robots ??
+    `${routePolicy.index ? 'index' : 'noindex'}, ${
+      routePolicy.follow ? 'follow' : 'nofollow'
+    }`;
 
   return {
     title: pageTitle,

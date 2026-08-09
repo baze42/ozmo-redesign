@@ -1,8 +1,16 @@
 ---
+import BlogCard from '../components/content/BlogCard.astro';
+import ServiceCard from '../components/content/ServiceCard.astro';
+import TransformationCard from '../components/content/TransformationCard.astro';
 import TransformationHero from '../components/hero/TransformationHero.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { buildMetadata } from '../lib/seo/metadata';
 import { buildOrganizationSchema } from '../lib/seo/schema';
+import {
+  getBuildPosts,
+  getBuildServices,
+  getBuildTransformations,
+} from '../lib/wordpress/content';
 
 const metadata = buildMetadata({
   pathname: '/',
@@ -11,8 +19,352 @@ const metadata = buildMetadata({
     'OZMO Digital turns slow, outdated, unclear, or missing websites into fast, polished lead-generation sites.',
   imagePath: '/assets/og-home.png',
 });
+const [services, transformations, posts] = await Promise.all([
+  getBuildServices(),
+  getBuildTransformations(),
+  getBuildPosts(),
+]);
+const showBlogPreview = posts.length >= 3;
 ---
 
 <BaseLayout metadata={metadata} jsonLd={[buildOrganizationSchema()]}>
   <TransformationHero />
+
+  <section class="section problem-section" aria-labelledby="problem-title">
+    <div class="section-shell split">
+      <div>
+        <p class="eyebrow">Problem</p>
+        <h2 id="problem-title">When the site works against the business</h2>
+      </div>
+      <div class="text-stack">
+        <p>
+          A small business website can look present but still slow the buying conversation down.
+          Visitors hesitate when the offer is unclear, the mobile path is crowded, or the next step
+          is hidden below too much noise.
+        </p>
+        <ul class="check-list">
+          <li>Pages feel dated before the business has a chance to explain itself.</li>
+          <li>Service copy answers internal questions instead of visitor questions.</li>
+          <li>Forms collect too little context for useful follow-up.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section guide-section" aria-labelledby="guide-title">
+    <div class="section-shell split">
+      <div>
+        <p class="eyebrow">Guide</p>
+        <h2 id="guide-title">A practical partner for the path forward</h2>
+      </div>
+      <div class="text-stack">
+        <p>
+          OZMO Digital focuses on the working parts of the website: message, page structure, load
+          quality, trust signals, lead capture, and the handoff after someone reaches out.
+        </p>
+        <p>
+          The work stays honest. No invented proof, no inflated metrics, and no generic agency
+          theater where clear site decisions would do more.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section plan-section" aria-labelledby="plan-title">
+    <div class="section-shell">
+      <div class="section-heading">
+        <p class="eyebrow">Plan</p>
+        <h2 id="plan-title">Review, improve or build, launch, optimize</h2>
+      </div>
+      <ol class="plan-list">
+        <li>
+          <strong>Review</strong>
+          <span>Find the friction in the current message, structure, speed, and inquiry path.</span>
+        </li>
+        <li>
+          <strong>Improve or build</strong>
+          <span>Shape the right scope: targeted fixes, a redesign, or a clean launch site.</span>
+        </li>
+        <li>
+          <strong>Launch</strong>
+          <span>Ship a fast Astro site with WordPress-owned public content and practical SEO.</span>
+        </li>
+        <li>
+          <strong>Optimize</strong>
+          <span>Keep the site stable while improving content, lead paths, and follow-up context.</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section services-preview" aria-labelledby="services-preview-title">
+    <div class="section-shell">
+      <div class="section-heading row-heading">
+        <div>
+          <p class="eyebrow">Services</p>
+          <h2 id="services-preview-title">Services built around clearer lead paths</h2>
+        </div>
+        <a href="/services">View all services</a>
+      </div>
+      <div class="card-grid three-up">
+        {services.slice(0, 3).map((service) => <ServiceCard service={service} compact />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section transformations-preview" aria-labelledby="transformations-title">
+    <div class="section-shell">
+      <div class="section-heading row-heading">
+        <div>
+          <p class="eyebrow">Before and after paths</p>
+          <h2 id="transformations-title">Transformation examples</h2>
+        </div>
+        <a href="/portfolio">View examples</a>
+      </div>
+      <div class="card-grid two-up">
+        {
+          transformations
+            .slice(0, 2)
+            .map((transformation) => (
+              <TransformationCard transformation={transformation} compact />
+            ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="review-band" aria-labelledby="review-title">
+    <div>
+      <p class="eyebrow">Site review</p>
+      <h2 id="review-title">From unclear to ready for leads</h2>
+      <p>
+        Start with a practical review of the current page path, then decide whether the business
+        needs focused improvements, a redesign, or a clean first site.
+      </p>
+    </div>
+    <a href="/free-site-audit">Get a Free Site Review</a>
+  </section>
+
+  {
+    showBlogPreview && (
+      <section class="section blog-preview" aria-labelledby="blog-preview-title">
+        <div class="section-shell">
+          <div class="section-heading row-heading">
+            <div>
+              <p class="eyebrow">Blog</p>
+              <h2 id="blog-preview-title">Useful notes before you rebuild</h2>
+            </div>
+            <a href="/blog">Read the blog</a>
+          </div>
+          <div class="card-grid three-up">
+            {posts.slice(0, 3).map((post) => (
+              <BlogCard post={post} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 </BaseLayout>
+
+<style>
+  .section {
+    padding: var(--space-16) 0;
+  }
+
+  .problem-section,
+  .plan-section,
+  .transformations-preview {
+    background: var(--color-white);
+  }
+
+  .section-shell,
+  .review-band {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--space-10);
+    align-items: start;
+  }
+
+  .section-heading {
+    max-width: 58rem;
+    margin-bottom: var(--space-8);
+  }
+
+  .row-heading {
+    max-width: none;
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-6);
+    align-items: end;
+  }
+
+  .row-heading > a {
+    min-height: 44px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    color: var(--color-ozmo-blue);
+    font-weight: 600;
+  }
+
+  .eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--color-action-orange-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    max-width: 13ch;
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    font-size: clamp(2.15rem, 5.5vw, 4.5rem);
+    line-height: 1.02;
+  }
+
+  .text-stack {
+    display: grid;
+    gap: var(--space-5);
+    color: var(--color-muted-ink);
+    font-size: clamp(1.05rem, 2vw, 1.22rem);
+  }
+
+  .check-list {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .check-list li {
+    position: relative;
+    padding-left: var(--space-6);
+  }
+
+  .check-list li::before {
+    content: '';
+    position: absolute;
+    top: 0.67em;
+    left: 0;
+    width: 0.85rem;
+    height: 0.32rem;
+    background: var(--color-signal-teal);
+  }
+
+  .plan-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .plan-list li {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background: var(--color-clean-surface);
+    border: 1px solid color-mix(in srgb, var(--color-line-gray) 74%, transparent);
+    border-radius: var(--radius-md);
+  }
+
+  .plan-list strong {
+    color: var(--color-deep-ink);
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+  }
+
+  .plan-list span {
+    color: var(--color-muted-ink);
+  }
+
+  .card-grid {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .three-up {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .two-up {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .review-band {
+    margin-top: var(--space-16);
+    margin-bottom: var(--space-16);
+    padding: var(--space-8);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    background: var(--color-after-blue-soft);
+    border: 1px solid color-mix(in srgb, var(--color-ozmo-blue) 22%, transparent);
+    border-radius: var(--radius-md);
+  }
+
+  .review-band > div {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .review-band p:not(.eyebrow) {
+    max-width: 42rem;
+    color: var(--color-muted-ink);
+    font-size: 1.08rem;
+  }
+
+  .review-band a {
+    min-height: 48px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-5);
+    background: var(--color-action-orange-dark);
+    color: var(--color-white);
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (max-width: 960px) {
+    .split,
+    .plan-list,
+    .three-up,
+    .two-up {
+      grid-template-columns: 1fr;
+    }
+
+    .row-heading,
+    .review-band {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .section {
+      padding: var(--space-12) 0;
+    }
+
+    .review-band {
+      padding: var(--space-6);
+    }
+  }
+</style>

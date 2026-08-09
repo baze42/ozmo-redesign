@@ -12,6 +12,7 @@ export type RouteConfig = {
 };
 
 const indexable: RobotsPolicy = { index: true, follow: true, sitemap: true };
+const indexableFeed: RobotsPolicy = { index: true, follow: true, sitemap: true };
 const noindexPublic: RobotsPolicy = { index: false, follow: true, sitemap: false };
 const privateNoindex: RobotsPolicy = {
   index: false,
@@ -44,6 +45,8 @@ export const REQUIRED_ROUTES: RouteConfig[] = [
   { path: '/admin/bookings', purpose: 'Admin booking list', policy: privateNoindex },
   { path: '/404', purpose: 'Not found', policy: noindexPublic },
   { path: '/500', purpose: 'Server error', policy: noindexPublic },
+  { path: '/rss.xml', purpose: 'RSS feed', policy: indexableFeed },
+  { path: '/robots.txt', purpose: 'Robots directives', policy: noindexPublic },
 ];
 
 export function getRobotsForRoute(pathname: string): RobotsPolicy {
