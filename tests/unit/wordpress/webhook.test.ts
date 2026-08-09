@@ -47,6 +47,7 @@ describe('rebuild events schema', () => {
       'contentId',
       'contentType',
       'deployFinishedAt',
+      'deployHookId',
       'deployJobCreatedAt',
       'deployJobId',
       'deployJobState',
@@ -237,6 +238,7 @@ describe('rebuild enqueueing and processing', () => {
     expect(store.records[0]).toMatchObject({
       status: 'triggered',
       deployTriggeredAt: new Date('2026-08-09T12:02:03.000Z'),
+      deployHookId: 'deploy',
       deployJobId: 'job_queued',
       deployJobState: 'PENDING',
       deployJobCreatedAt: new Date('2026-08-09T12:02:03.000Z'),
@@ -254,6 +256,7 @@ describe('rebuild enqueueing and processing', () => {
         url: 'ozmo-ready.vercel.app',
         state: 'READY' as const,
         source: 'api-trigger-git-deploy',
+        deployHookId: 'deploy',
         deployHookJobId: 'job_ready',
         createdAt: new Date('2026-08-09T12:02:03.000Z'),
         buildingAt: new Date('2026-08-09T12:02:10.000Z'),
@@ -282,6 +285,7 @@ describe('rebuild enqueueing and processing', () => {
 
     expect(deploymentTracker.findLatestDeployHookDeployment).toHaveBeenCalledWith({
       jobId: 'job_ready',
+      deployHookId: 'deploy',
       createdAt: new Date('2026-08-09T12:02:03.000Z'),
     });
     expect(result).toMatchObject({
@@ -350,6 +354,7 @@ describe('rebuild enqueueing and processing', () => {
         url: 'ozmo-failed.vercel.app',
         state: 'ERROR' as const,
         source: 'api-trigger-git-deploy',
+        deployHookId: 'deploy',
         deployHookJobId: 'job_failed',
         createdAt: new Date('2026-08-09T12:02:03.000Z'),
         buildingAt: new Date('2026-08-09T12:02:10.000Z'),
@@ -405,6 +410,7 @@ describe('rebuild enqueueing and processing', () => {
         url: 'ozmo-slow.vercel.app',
         state: 'READY' as const,
         source: 'api-trigger-git-deploy',
+        deployHookId: 'deploy',
         deployHookJobId: 'job_slow',
         createdAt: new Date('2026-08-09T12:02:03.000Z'),
         buildingAt: new Date('2026-08-09T12:02:10.000Z'),
@@ -485,6 +491,45 @@ describe('rebuild enqueueing and processing', () => {
       expect.objectContaining({
         subject: expect.stringContaining('architecture review'),
         text: expect.stringContaining('job_stale'),
+      }),
+    );
+  });
+
+  it('marks stale processing rebuilds failed so killed deploy-hook invocations are not stranded', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const emailSender = vi.fn();
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore: createInMemoryRebuildLockStore(),
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(),
+      emailSender,
+      alertRecipients: ['owner@ozmodigital.com'],
+      now: () => new Date('2026-08-09T12:00:00.000Z'),
+    });
+
+    await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 1 }));
+    Object.assign(store.records[0], {
+      status: 'processing',
+      deployStartedAt: new Date('2026-08-09T12:02:00.000Z'),
+    });
+
+    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:33:00.000Z'));
+
+    expect(result).toMatchObject({
+      triggered: false,
+      failedEvents: 1,
+      architectureReviewRequired: true,
+    });
+    expect(store.records[0]).toMatchObject({
+      status: 'failed',
+      error: expect.stringContaining('Timed out waiting for deploy hook processing'),
+      buildDurationMs: 1_860_000,
+    });
+    expect(emailSender).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining('architecture review'),
+        text: expect.stringContaining('processing'),
       }),
     );
   });

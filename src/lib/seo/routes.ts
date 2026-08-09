@@ -12,7 +12,8 @@ export type RouteConfig = {
 };
 
 const indexable: RobotsPolicy = { index: true, follow: true, sitemap: true };
-const indexableFeed: RobotsPolicy = { index: true, follow: true, sitemap: true };
+const gatedIndexable: RobotsPolicy = { index: true, follow: true, sitemap: false };
+const indexableFeed: RobotsPolicy = gatedIndexable;
 const noindexPublic: RobotsPolicy = { index: false, follow: true, sitemap: false };
 const privateNoindex: RobotsPolicy = {
   index: false,
@@ -25,7 +26,7 @@ export const REQUIRED_ROUTES: RouteConfig[] = [
   { path: '/', purpose: 'Homepage', policy: indexable },
   { path: '/services', purpose: 'Services overview', policy: indexable },
   { path: '/portfolio', purpose: 'Transformation examples', policy: indexable },
-  { path: '/blog', purpose: 'Blog index', policy: indexable },
+  { path: '/blog', purpose: 'Blog index', policy: gatedIndexable },
   { path: '/blog/[slug]', purpose: 'Blog detail', policy: { ...indexable, sitemap: false } },
   { path: '/contact', purpose: 'General inquiry page', policy: indexable },
   { path: '/free-site-audit', purpose: 'Site review entry page', policy: indexable },
@@ -61,6 +62,16 @@ export function getRobotsForRoute(pathname: string): RobotsPolicy {
   return REQUIRED_ROUTES.find((route) => route.path === pathname)?.policy ?? noindexPublic;
 }
 
-export function getSitemapRoutes(): RouteConfig[] {
-  return REQUIRED_ROUTES.filter((route) => route.policy.sitemap);
+export function getSitemapRoutes(
+  options: { publishedPostCount?: number } = {},
+): RouteConfig[] {
+  const blogIsIndexable = (options.publishedPostCount ?? 0) >= 3;
+
+  return REQUIRED_ROUTES.filter((route) => {
+    if (route.path === '/blog' || route.path === '/rss.xml') {
+      return blogIsIndexable;
+    }
+
+    return route.policy.sitemap;
+  });
 }

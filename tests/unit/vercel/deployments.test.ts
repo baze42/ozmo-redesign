@@ -26,7 +26,7 @@ describe('createVercelDeploymentTracker', () => {
                 url: 'ozmo-ready.vercel.app',
                 readyState: 'READY',
                 source: 'api-trigger-git-deploy',
-                meta: { deployHookJobId: 'job_ready' },
+                meta: { deployHookId: 'hook_ozmo', deployHookJobId: 'job_ready' },
                 createdAt: Date.parse('2026-08-09T12:02:03.000Z'),
                 buildingAt: Date.parse('2026-08-09T12:02:10.000Z'),
                 ready: Date.parse('2026-08-09T12:06:40.000Z'),
@@ -49,6 +49,7 @@ describe('createVercelDeploymentTracker', () => {
 
     const deployment = await tracker.findLatestDeployHookDeployment({
       jobId: 'job_ready',
+      deployHookId: 'hook_ozmo',
       createdAt: new Date('2026-08-09T12:02:00.000Z'),
     });
 
@@ -73,6 +74,7 @@ describe('createVercelDeploymentTracker', () => {
       url: 'ozmo-ready.vercel.app',
       state: 'READY',
       source: 'api-trigger-git-deploy',
+      deployHookId: 'hook_ozmo',
       deployHookJobId: 'job_ready',
       createdAt: new Date('2026-08-09T12:02:03.000Z'),
       buildingAt: new Date('2026-08-09T12:02:10.000Z'),
@@ -92,8 +94,64 @@ describe('createVercelDeploymentTracker', () => {
     await expect(
       tracker.findLatestDeployHookDeployment({
         jobId: 'job_failed',
+        deployHookId: 'hook_ozmo',
         createdAt: new Date('2026-08-09T12:02:00.000Z'),
       }),
     ).rejects.toThrow('Vercel deployments request failed with HTTP 401');
+  });
+
+  it('matches by deploy hook id when deployment job metadata is not available', async () => {
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            deployments: [
+              {
+                uid: 'dpl_competing',
+                url: 'ozmo-other.vercel.app',
+                readyState: 'READY',
+                source: 'api-trigger-git-deploy',
+                meta: { deployHookId: 'hook_other' },
+                createdAt: Date.parse('2026-08-09T12:03:30.000Z'),
+                buildingAt: Date.parse('2026-08-09T12:03:40.000Z'),
+                ready: Date.parse('2026-08-09T12:04:50.000Z'),
+              },
+              {
+                uid: 'dpl_ozmo',
+                url: 'ozmo-rebuild.vercel.app',
+                readyState: 'READY',
+                source: 'api-trigger-git-deploy',
+                meta: { deployHookId: 'hook_ozmo' },
+                createdAt: Date.parse('2026-08-09T12:02:30.000Z'),
+                buildingAt: Date.parse('2026-08-09T12:02:40.000Z'),
+                ready: Date.parse('2026-08-09T12:03:50.000Z'),
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+    );
+    const tracker = createVercelDeploymentTracker({
+      apiToken: 'vercel-token',
+      projectId: 'prj_ozmo',
+      fetcher,
+    });
+
+    const findByHookId = tracker.findLatestDeployHookDeployment as (input: {
+      jobId: string;
+      deployHookId: string;
+      createdAt: Date;
+    }) => ReturnType<typeof tracker.findLatestDeployHookDeployment>;
+    const deployment = await findByHookId({
+      jobId: 'job_queued',
+      deployHookId: 'hook_ozmo',
+      createdAt: new Date('2026-08-09T12:02:00.000Z'),
+    });
+
+    expect(deployment?.id).toBe('dpl_ozmo');
+    expect(deployment).toMatchObject({
+      deployHookJobId: null,
+      deployHookId: 'hook_ozmo',
+    });
   });
 });

@@ -1,7 +1,7 @@
 import { getEnv, type AppEnv } from '../config/env';
 
 import {
-  createWordPressClient,
+  createDefaultWordPressClient,
   type WordPressClient,
 } from './client';
 import {
@@ -17,8 +17,11 @@ import type {
 
 type BuildContentEnv = Pick<
   AppEnv,
-  'WORDPRESS_API_BASE_URL' | 'PRODUCTION_LAUNCH_APPROVED' | 'OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES'
->;
+  | 'WORDPRESS_API_BASE_URL'
+  | 'PRODUCTION_LAUNCH_APPROVED'
+  | 'OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES'
+> &
+  Partial<Pick<AppEnv, 'INTERNAL_ALERT_EMAILS'>>;
 
 type BuildContentOptions = {
   env?: BuildContentEnv;
@@ -47,7 +50,7 @@ export async function getBuildServices(
     return fixtureServices;
   }
 
-  return createDefaultWordPressClient(env).getServices();
+  return createBuildWordPressClient(env).getServices();
 }
 
 export async function getBuildTransformations(
@@ -63,7 +66,7 @@ export async function getBuildTransformations(
     return fixtureTransformations;
   }
 
-  return createDefaultWordPressClient(env).getTransformations();
+  return createBuildWordPressClient(env).getTransformations();
 }
 
 export async function getBuildPosts(options: BuildContentOptions = {}): Promise<PostViewModel[]> {
@@ -77,7 +80,7 @@ export async function getBuildPosts(options: BuildContentOptions = {}): Promise<
     return fixturePosts;
   }
 
-  return createDefaultWordPressClient(env).getPublishedPosts();
+  return createBuildWordPressClient(env).getPublishedPosts();
 }
 
 export function getBlogIndexRobots(posts: Array<unknown>) {
@@ -85,22 +88,27 @@ export function getBlogIndexRobots(posts: Array<unknown>) {
 }
 
 function resolveBuildContentEnv(env?: BuildContentEnv): BuildContentEnv {
-  if (env) {
-    return env;
-  }
-
   const currentEnv = getEnv();
+
+  if (env) {
+    return {
+      ...env,
+      INTERNAL_ALERT_EMAILS: env.INTERNAL_ALERT_EMAILS ?? currentEnv.INTERNAL_ALERT_EMAILS,
+    };
+  }
 
   return {
     WORDPRESS_API_BASE_URL: currentEnv.WORDPRESS_API_BASE_URL,
     PRODUCTION_LAUNCH_APPROVED: currentEnv.PRODUCTION_LAUNCH_APPROVED,
     OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: currentEnv.OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES,
+    INTERNAL_ALERT_EMAILS: currentEnv.INTERNAL_ALERT_EMAILS,
   };
 }
 
-function createDefaultWordPressClient(env: BuildContentEnv): WordPressClient {
-  return createWordPressClient({
-    apiBaseUrl: env.WORDPRESS_API_BASE_URL,
-    productionLaunchApproved: env.PRODUCTION_LAUNCH_APPROVED,
+function createBuildWordPressClient(env: BuildContentEnv): WordPressClient {
+  return createDefaultWordPressClient({
+    WORDPRESS_API_BASE_URL: env.WORDPRESS_API_BASE_URL,
+    PRODUCTION_LAUNCH_APPROVED: env.PRODUCTION_LAUNCH_APPROVED,
+    INTERNAL_ALERT_EMAILS: env.INTERNAL_ALERT_EMAILS ?? '',
   });
 }

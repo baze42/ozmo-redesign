@@ -47,7 +47,7 @@ describe('route inventory', () => {
   });
 
   it('returns only indexable public routes for the sitemap', () => {
-    const sitemapPaths = getSitemapRoutes().map((route) => route.path);
+    const sitemapPaths = getSitemapRoutes({ publishedPostCount: 3 }).map((route) => route.path);
 
     expect(sitemapPaths).toContain('/');
     expect(sitemapPaths).toContain('/services');
@@ -59,5 +59,15 @@ describe('route inventory', () => {
     expect(sitemapPaths).not.toContain('/admin');
     expect(sitemapPaths).not.toContain('/thank-you/contact');
     expect(sitemapPaths).not.toContain('/schedule/review/[token]');
+  });
+
+  it('excludes blog and RSS from sitemap route inventory before the blog is indexable', () => {
+    const sitemapPaths = getSitemapRoutes({ publishedPostCount: 2 }).map((route) => route.path);
+
+    expect(sitemapPaths).toContain('/');
+    expect(sitemapPaths).toContain('/services');
+    expect(sitemapPaths).toContain('/portfolio');
+    expect(sitemapPaths).not.toContain('/blog');
+    expect(sitemapPaths).not.toContain('/rss.xml');
   });
 });

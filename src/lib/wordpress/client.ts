@@ -46,6 +46,11 @@ export interface WordPressClient {
   getPublishedPosts(): Promise<PostViewModel[]>;
 }
 
+export type DefaultWordPressClientEnv = Pick<
+  ReturnType<typeof getEnv>,
+  'WORDPRESS_API_BASE_URL' | 'PRODUCTION_LAUNCH_APPROVED' | 'INTERNAL_ALERT_EMAILS'
+>;
+
 export class WordPressClientError extends Error {
   readonly code: WordPressClientErrorCode;
   readonly contentType: ContentType;
@@ -185,19 +190,18 @@ export function createWordPressClient(options: WordPressClientOptions): WordPres
 }
 
 export function getServices() {
-  return createDefaultClient().getServices();
+  return createDefaultWordPressClient().getServices();
 }
 
 export function getTransformations() {
-  return createDefaultClient().getTransformations();
+  return createDefaultWordPressClient().getTransformations();
 }
 
 export function getPublishedPosts() {
-  return createDefaultClient().getPublishedPosts();
+  return createDefaultWordPressClient().getPublishedPosts();
 }
 
-function createDefaultClient() {
-  const env = getEnv();
+export function createDefaultWordPressClient(env: DefaultWordPressClientEnv = getEnv()) {
   const alertRecipients = parseEmailList(env.INTERNAL_ALERT_EMAILS);
 
   return createWordPressClient({

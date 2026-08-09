@@ -62,6 +62,7 @@ export interface RebuildEventRecord {
   processedAt: Date | null;
   deployStartedAt: Date | null;
   deployTriggeredAt: Date | null;
+  deployHookId: string | null;
   deployJobId: string | null;
   deployJobState: string | null;
   deployJobCreatedAt: Date | null;
@@ -90,12 +91,14 @@ export interface RebuildEventStore {
   reschedulePendingEvents(scheduledAt: Date): Promise<void>;
   listDuePendingEvents(now: Date): Promise<RebuildEventRecord[]>;
   listTriggeredEvents(): Promise<RebuildEventRecord[]>;
+  listStaleProcessingEvents(cutoff: Date): Promise<RebuildEventRecord[]>;
   markEventsProcessing(ids: string[], deployStartedAt: Date): Promise<void>;
   markEventsTriggered(
     ids: string[],
     values: {
       deployTriggeredAt: Date;
       deployResponseStatus: number;
+      deployHookId: string | null;
       deployJobId: string;
       deployJobState: string;
       deployJobCreatedAt: Date;
@@ -283,6 +286,7 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
           processedAt: null,
           deployStartedAt: null,
           deployTriggeredAt: null,
+          deployHookId: null,
           deployJobId: null,
           deployJobState: null,
           deployJobCreatedAt: null,
@@ -310,6 +314,19 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
         return processTriggeredDeployment({
           events: triggeredEvents,
           deploymentTracker,
+          eventStore: options.eventStore,
+          emailSender,
+          alertRecipients,
+          now,
+        });
+      }
+
+      const staleProcessingEvents = await options.eventStore.listStaleProcessingEvents(
+        new Date(now.getTime() - triggeredDeploymentTimeoutMs),
+      );
+      if (staleProcessingEvents.length > 0) {
+        return markProcessingEventsTimedOut({
+          events: staleProcessingEvents,
           eventStore: options.eventStore,
           emailSender,
           alertRecipients,
@@ -378,10 +395,12 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
         }
 
         const deployHookJob = await readDeployHookJob(response);
+        const deployHookId = readDeployHookIdFromUrl(options.deployHookUrl);
 
         await options.eventStore.markEventsTriggered(ids, {
           deployTriggeredAt,
           deployResponseStatus: response.status,
+          deployHookId,
           deployJobId: deployHookJob.id,
           deployJobState: deployHookJob.state,
           deployJobCreatedAt: deployHookJob.createdAt,
@@ -454,6 +473,7 @@ async function processTriggeredDeployment(input: {
 
   const deployment = await input.deploymentTracker.findLatestDeployHookDeployment({
     jobId: deployHookJob.id,
+    deployHookId: deployHookJob.deployHookId,
     createdAt: deployHookJob.createdAt,
   });
 
@@ -580,6 +600,50 @@ async function markTriggeredEventsTimedOut(
   };
 }
 
+async function markProcessingEventsTimedOut(input: {
+  events: RebuildEventRecord[];
+  eventStore: RebuildEventStore;
+  emailSender: EmailSender;
+  alertRecipients: string[];
+  now: Date;
+}): Promise<RebuildProcessResult> {
+  const ids = input.events.map((event) => event.id);
+  const eventCount = input.events.length;
+  const deployStartedAt = getEarliestDeployStartedAt(input.events);
+  const buildDurationMs = Math.max(0, input.now.getTime() - deployStartedAt.getTime());
+  const architectureReviewRequired = buildDurationMs > longBuildThresholdMs;
+  const failureReason =
+    'Timed out waiting for deploy hook processing to finish for rebuild events stuck in processing.';
+
+  await input.eventStore.markEventsFailed(ids, {
+    processedAt: input.now,
+    deployStartedAt,
+    deployFinishedAt: input.now,
+    buildDurationMs,
+    deployResponseStatus: getSharedDeployResponseStatus(input.events),
+    deploymentId: null,
+    deploymentState: null,
+    deploymentUrl: null,
+    error: failureReason,
+    longBuildReviewRequired: architectureReviewRequired,
+  });
+  await sendBuildAlert(input.emailSender, input.alertRecipients, {
+    reason: failureReason,
+    eventCount,
+    buildDurationMs,
+    architectureReviewRequired,
+    occurredAt: input.now,
+  });
+
+  return {
+    triggered: false,
+    processedEvents: 0,
+    failedEvents: eventCount,
+    buildDurationMs,
+    architectureReviewRequired,
+  };
+}
+
 export function configureRebuildProcessor(processor: RebuildProcessor | null) {
   configuredProcessor = processor;
 }
@@ -639,6 +703,15 @@ export function createInMemoryRebuildEventStore(): RebuildEventStore & {
       return records.filter((record) => record.status === 'triggered');
     },
 
+    async listStaleProcessingEvents(cutoff) {
+      return records.filter(
+        (record) =>
+          record.status === 'processing' &&
+          record.deployStartedAt !== null &&
+          record.deployStartedAt <= cutoff,
+      );
+    },
+
     async markEventsProcessing(ids, deployStartedAt) {
       for (const record of records) {
         if (ids.includes(record.id)) {
@@ -655,6 +728,7 @@ export function createInMemoryRebuildEventStore(): RebuildEventStore & {
             status: 'triggered',
             deployTriggeredAt: values.deployTriggeredAt,
             deployResponseStatus: values.deployResponseStatus,
+            deployHookId: values.deployHookId,
             deployJobId: values.deployJobId,
             deployJobState: values.deployJobState,
             deployJobCreatedAt: values.deployJobCreatedAt,
@@ -806,6 +880,15 @@ export function createDrizzleRebuildEventStore(db: Database): RebuildEventStore 
         .limit(100);
     },
 
+    async listStaleProcessingEvents(cutoff) {
+      return db
+        .select()
+        .from(rebuildEvents)
+        .where(and(eq(rebuildEvents.status, 'processing'), lte(rebuildEvents.deployStartedAt, cutoff)))
+        .orderBy(desc(rebuildEvents.deployStartedAt))
+        .limit(100);
+    },
+
     async markEventsProcessing(ids, deployStartedAt) {
       await db
         .update(rebuildEvents)
@@ -820,6 +903,7 @@ export function createDrizzleRebuildEventStore(db: Database): RebuildEventStore 
           status: 'triggered',
           deployTriggeredAt: values.deployTriggeredAt,
           deployResponseStatus: values.deployResponseStatus,
+          deployHookId: values.deployHookId,
           deployJobId: values.deployJobId,
           deployJobState: values.deployJobState,
           deployJobCreatedAt: values.deployJobCreatedAt,
@@ -1044,6 +1128,18 @@ function getEarliestDeployTriggeredAt(events: RebuildEventRecord[]) {
   return new Date(Math.min(...timestamps));
 }
 
+function getEarliestDeployStartedAt(events: RebuildEventRecord[]) {
+  const timestamps = events
+    .map((event) => event.deployStartedAt?.getTime())
+    .filter((timestamp): timestamp is number => typeof timestamp === 'number');
+
+  if (timestamps.length === 0) {
+    return new Date(0);
+  }
+
+  return new Date(Math.min(...timestamps));
+}
+
 function getSharedDeployResponseStatus(events: RebuildEventRecord[]) {
   return events.find((event) => event.deployResponseStatus !== null)?.deployResponseStatus ?? null;
 }
@@ -1056,8 +1152,20 @@ function getDeployHookJob(events: RebuildEventRecord[]) {
 
   return {
     id: event.deployJobId,
+    deployHookId: event.deployHookId,
     createdAt: event.deployJobCreatedAt,
   };
+}
+
+function readDeployHookIdFromUrl(value: string) {
+  try {
+    const url = new URL(value);
+    const segments = url.pathname.split('/').filter(Boolean);
+
+    return segments.at(-1) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function readDeployHookJob(response: Response) {

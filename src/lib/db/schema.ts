@@ -36,6 +36,7 @@ export const rebuildEvents = pgTable(
     processedAt: timestamp('processed_at', { withTimezone: true }),
     deployStartedAt: timestamp('deploy_started_at', { withTimezone: true }),
     deployTriggeredAt: timestamp('deploy_triggered_at', { withTimezone: true }),
+    deployHookId: text('deploy_hook_id'),
     deployJobId: text('deploy_job_id'),
     deployJobState: text('deploy_job_state'),
     deployJobCreatedAt: timestamp('deploy_job_created_at', { withTimezone: true }),

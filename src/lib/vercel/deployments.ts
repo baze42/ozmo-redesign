@@ -13,6 +13,7 @@ export interface VercelDeploymentRecord {
   url: string | null;
   state: VercelDeploymentState;
   source: string | null;
+  deployHookId: string | null;
   deployHookJobId: string | null;
   createdAt: Date;
   buildingAt: Date | null;
@@ -24,6 +25,7 @@ export interface VercelDeploymentRecord {
 export interface VercelDeploymentTracker {
   findLatestDeployHookDeployment(input: {
     jobId: string;
+    deployHookId?: string | null;
     createdAt: Date;
   }): Promise<VercelDeploymentRecord | null>;
 }
@@ -102,6 +104,7 @@ function normalizeDeployment(value: unknown): VercelDeploymentRecord | null {
     url: readString(record.url),
     state,
     source: readString(record.source),
+    deployHookId: readDeployHookId(record.meta),
     deployHookJobId: readDeployHookJobId(record.meta),
     createdAt,
     buildingAt: readTimestamp(record.buildingAt),
@@ -118,16 +121,33 @@ function normalizeDeployment(value: unknown): VercelDeploymentRecord | null {
 
 function matchesDeployHookJob(
   deployment: VercelDeploymentRecord,
-  input: { jobId: string; createdAt: Date },
+  input: { jobId: string; deployHookId?: string | null; createdAt: Date },
 ) {
   if (deployment.deployHookJobId) {
-    return deployment.deployHookJobId === input.jobId;
+    return (
+      deployment.deployHookJobId === input.jobId &&
+      (!input.deployHookId ||
+        !deployment.deployHookId ||
+        deployment.deployHookId === input.deployHookId)
+    );
   }
 
   return (
+    Boolean(input.deployHookId) &&
+    deployment.deployHookId === input.deployHookId &&
     deployment.source === 'api-trigger-git-deploy' &&
     deployment.createdAt.getTime() >= input.createdAt.getTime()
   );
+}
+
+function readDeployHookId(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return readString(record.deployHookId) ?? readString(record.deploy_hook_id);
 }
 
 function readDeployHookJobId(value: unknown) {
