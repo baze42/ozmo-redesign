@@ -5,7 +5,15 @@ import { processDueRebuildEvents } from '../../../lib/wordpress/webhook';
 
 export const prerender = false;
 
+export async function GET(context: APIContext) {
+  return handleProcessRebuilds(context);
+}
+
 export async function POST(context: APIContext) {
+  return handleProcessRebuilds(context);
+}
+
+async function handleProcessRebuilds(context: APIContext) {
   const { CRON_SECRET } = getEnv();
   const authorization = context.request.headers.get('authorization') || '';
   const cronSecret = context.request.headers.get('x-cron-secret') || '';

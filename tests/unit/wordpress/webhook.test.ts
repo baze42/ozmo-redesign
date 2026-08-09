@@ -18,7 +18,10 @@ import {
   type WordPressWebhookPayload,
 } from '../../../src/lib/wordpress/webhook';
 import type { VercelDeploymentTracker } from '../../../src/lib/vercel/deployments';
-import { POST as processRebuildsPost } from '../../../src/pages/api/cron/process-rebuilds';
+import {
+  GET as processRebuildsGet,
+  POST as processRebuildsPost,
+} from '../../../src/pages/api/cron/process-rebuilds';
 import { POST as wordpressWebhookPost } from '../../../src/pages/api/webhooks/wordpress';
 
 const secret = 'test-wordpress-webhook-secret';
@@ -44,6 +47,9 @@ describe('rebuild events schema', () => {
       'contentId',
       'contentType',
       'deployFinishedAt',
+      'deployJobCreatedAt',
+      'deployJobId',
+      'deployJobState',
       'deployResponseStatus',
       'deployStartedAt',
       'deployTriggeredAt',
@@ -199,7 +205,7 @@ describe('rebuild enqueueing and processing', () => {
 
   it('triggers one deploy hook for due pending events under a Redis-style lock', async () => {
     const store = createInMemoryRebuildEventStore();
-    const fetcher = vi.fn(async () => new Response('queued', { status: 200 }));
+    const fetcher = vi.fn(async () => deployHookResponse('job_queued', '2026-08-09T12:02:03.000Z'));
     const processor = createRebuildProcessor({
       eventStore: store,
       lockStore: createInMemoryRebuildLockStore(),
@@ -231,6 +237,9 @@ describe('rebuild enqueueing and processing', () => {
     expect(store.records[0]).toMatchObject({
       status: 'triggered',
       deployTriggeredAt: new Date('2026-08-09T12:02:03.000Z'),
+      deployJobId: 'job_queued',
+      deployJobState: 'PENDING',
+      deployJobCreatedAt: new Date('2026-08-09T12:02:03.000Z'),
       processedAt: null,
       buildDurationMs: null,
       deployResponseStatus: 200,
@@ -240,10 +249,12 @@ describe('rebuild enqueueing and processing', () => {
   it('records completed Vercel deployments and real build duration on a later cron pass', async () => {
     const store = createInMemoryRebuildEventStore();
     const deploymentTracker: VercelDeploymentTracker = {
-      findLatestDeploymentStartedAfter: vi.fn(async () => ({
+      findLatestDeployHookDeployment: vi.fn(async () => ({
         id: 'dpl_ready',
         url: 'ozmo-ready.vercel.app',
         state: 'READY' as const,
+        source: 'api-trigger-git-deploy',
+        deployHookJobId: 'job_ready',
         createdAt: new Date('2026-08-09T12:02:03.000Z'),
         buildingAt: new Date('2026-08-09T12:02:10.000Z'),
         readyAt: new Date('2026-08-09T12:06:40.000Z'),
@@ -255,7 +266,7 @@ describe('rebuild enqueueing and processing', () => {
       eventStore: store,
       lockStore: createInMemoryRebuildLockStore(),
       deployHookUrl: 'https://vercel.example.test/deploy',
-      fetcher: vi.fn(async () => new Response('queued', { status: 200 })),
+      fetcher: vi.fn(async () => deployHookResponse('job_ready', '2026-08-09T12:02:03.000Z')),
       deploymentTracker,
       emailSender: vi.fn(),
       now: sequenceDates([
@@ -269,8 +280,9 @@ describe('rebuild enqueueing and processing', () => {
     await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
     const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:06:45.000Z'));
 
-    expect(deploymentTracker.findLatestDeploymentStartedAfter).toHaveBeenCalledWith({
-      since: new Date('2026-08-09T12:02:03.000Z'),
+    expect(deploymentTracker.findLatestDeployHookDeployment).toHaveBeenCalledWith({
+      jobId: 'job_ready',
+      createdAt: new Date('2026-08-09T12:02:03.000Z'),
     });
     expect(result).toMatchObject({
       triggered: false,
@@ -333,10 +345,12 @@ describe('rebuild enqueueing and processing', () => {
     const store = createInMemoryRebuildEventStore();
     const emailSender = vi.fn();
     const deploymentTracker: VercelDeploymentTracker = {
-      findLatestDeploymentStartedAfter: vi.fn(async () => ({
+      findLatestDeployHookDeployment: vi.fn(async () => ({
         id: 'dpl_failed',
         url: 'ozmo-failed.vercel.app',
         state: 'ERROR' as const,
+        source: 'api-trigger-git-deploy',
+        deployHookJobId: 'job_failed',
         createdAt: new Date('2026-08-09T12:02:03.000Z'),
         buildingAt: new Date('2026-08-09T12:02:10.000Z'),
         readyAt: new Date('2026-08-09T12:02:40.000Z'),
@@ -348,7 +362,7 @@ describe('rebuild enqueueing and processing', () => {
       eventStore: store,
       lockStore: createInMemoryRebuildLockStore(),
       deployHookUrl: 'https://vercel.example.test/deploy',
-      fetcher: vi.fn(async () => new Response('queued', { status: 200 })),
+      fetcher: vi.fn(async () => deployHookResponse('job_failed', '2026-08-09T12:02:03.000Z')),
       deploymentTracker,
       emailSender,
       alertRecipients: ['owner@ozmodigital.com'],
@@ -386,10 +400,12 @@ describe('rebuild enqueueing and processing', () => {
     const store = createInMemoryRebuildEventStore();
     const emailSender = vi.fn();
     const deploymentTracker: VercelDeploymentTracker = {
-      findLatestDeploymentStartedAfter: vi.fn(async () => ({
+      findLatestDeployHookDeployment: vi.fn(async () => ({
         id: 'dpl_slow',
         url: 'ozmo-slow.vercel.app',
         state: 'READY' as const,
+        source: 'api-trigger-git-deploy',
+        deployHookJobId: 'job_slow',
         createdAt: new Date('2026-08-09T12:02:03.000Z'),
         buildingAt: new Date('2026-08-09T12:02:10.000Z'),
         readyAt: new Date('2026-08-09T12:07:11.000Z'),
@@ -401,7 +417,7 @@ describe('rebuild enqueueing and processing', () => {
       eventStore: store,
       lockStore: createInMemoryRebuildLockStore(),
       deployHookUrl: 'https://vercel.example.test/deploy',
-      fetcher: vi.fn(async () => new Response('queued', { status: 200 })),
+      fetcher: vi.fn(async () => deployHookResponse('job_slow', '2026-08-09T12:02:03.000Z')),
       deploymentTracker,
       emailSender,
       alertRecipients: ['owner@ozmodigital.com'],
@@ -429,6 +445,71 @@ describe('rebuild enqueueing and processing', () => {
     );
   });
 
+  it('marks stale triggered rebuilds failed so future pending events are not blocked forever', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const emailSender = vi.fn();
+    const deploymentTracker: VercelDeploymentTracker = {
+      findLatestDeployHookDeployment: vi.fn(async () => null),
+    };
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore: createInMemoryRebuildLockStore(),
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(async () => deployHookResponse('job_stale', '2026-08-09T12:02:03.000Z')),
+      deploymentTracker,
+      emailSender,
+      alertRecipients: ['owner@ozmodigital.com'],
+      now: sequenceDates([
+        '2026-08-09T12:00:00.000Z',
+        '2026-08-09T12:02:01.000Z',
+        '2026-08-09T12:02:03.000Z',
+      ]),
+    });
+
+    await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 1 }));
+    await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
+    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:33:00.000Z'));
+
+    expect(result).toMatchObject({
+      triggered: false,
+      failedEvents: 1,
+      architectureReviewRequired: true,
+    });
+    expect(store.records[0]).toMatchObject({
+      status: 'failed',
+      deploymentId: null,
+      deploymentState: null,
+      error: expect.stringContaining('Timed out waiting for Vercel deployment'),
+    });
+    expect(emailSender).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining('architecture review'),
+        text: expect.stringContaining('job_stale'),
+      }),
+    );
+  });
+
+  it('retries enqueue lock contention instead of failing concurrent valid webhooks', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const lockStore = createInMemoryRebuildLockStore();
+    const acquire = vi.spyOn(lockStore, 'acquire');
+    acquire.mockResolvedValueOnce(false);
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore,
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(),
+      emailSender: vi.fn(),
+      sleep: vi.fn(async () => undefined),
+      now: () => new Date('2026-08-09T12:00:00.000Z'),
+    });
+
+    await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 77 }));
+
+    expect(store.records).toHaveLength(1);
+    expect(acquire).toHaveBeenCalledTimes(2);
+  });
+
   it('requires a valid CRON_SECRET before processing due events from the cron route', async () => {
     vi.stubEnv('CRON_SECRET', 'cron-secret');
     const response = await processRebuildsPost({
@@ -441,6 +522,35 @@ describe('rebuild enqueueing and processing', () => {
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({
       error: 'unauthorized',
+    });
+  });
+
+  it('processes due rebuilds from the Vercel cron GET route when CRON_SECRET is valid', async () => {
+    vi.stubEnv('CRON_SECRET', 'cron-secret');
+    const processDueRebuildEvents = vi.fn(async () => ({
+      triggered: true,
+      processedEvents: 1,
+      failedEvents: 0,
+      buildDurationMs: 0,
+      architectureReviewRequired: false,
+    }));
+    configureRebuildProcessor({
+      enqueueRebuildEvent: vi.fn(),
+      processDueRebuildEvents,
+    });
+
+    const response = await processRebuildsGet({
+      request: new Request('https://ozmodigital.com/api/cron/process-rebuilds', {
+        method: 'GET',
+        headers: { authorization: 'Bearer cron-secret' },
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    expect(processDueRebuildEvents).toHaveBeenCalledWith(expect.any(Date));
+    await expect(response.json()).resolves.toMatchObject({
+      triggered: true,
+      processedEvents: 1,
     });
   });
 });
@@ -503,6 +613,22 @@ function signedRequest(payload: Record<string, unknown>, requestSecret = secret)
   });
 
   return { request, signature };
+}
+
+function deployHookResponse(jobId: string, createdAt: string) {
+  return new Response(
+    JSON.stringify({
+      job: {
+        id: jobId,
+        state: 'PENDING',
+        createdAt: Date.parse(createdAt),
+      },
+    }),
+    {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    },
+  );
 }
 
 function verifiedPayload(overrides: Partial<WordPressWebhookPayload> = {}): WordPressWebhookPayload {

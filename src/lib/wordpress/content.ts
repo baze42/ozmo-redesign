@@ -15,7 +15,10 @@ import type {
   TransformationViewModel,
 } from './mappers';
 
-type BuildContentEnv = Pick<AppEnv, 'WORDPRESS_API_BASE_URL' | 'PRODUCTION_LAUNCH_APPROVED'>;
+type BuildContentEnv = Pick<
+  AppEnv,
+  'WORDPRESS_API_BASE_URL' | 'PRODUCTION_LAUNCH_APPROVED' | 'OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES'
+>;
 
 type BuildContentOptions = {
   env?: BuildContentEnv;
@@ -23,7 +26,12 @@ type BuildContentOptions = {
 };
 
 export function shouldUseLocalWordPressFixtures(env: BuildContentEnv): boolean {
-  return env.WORDPRESS_API_BASE_URL.trim() === '' && !env.PRODUCTION_LAUNCH_APPROVED;
+  return (
+    env.OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES &&
+    process.env.VERCEL !== '1' &&
+    env.WORDPRESS_API_BASE_URL.trim() === '' &&
+    !env.PRODUCTION_LAUNCH_APPROVED
+  );
 }
 
 export async function getBuildServices(
@@ -31,12 +39,12 @@ export async function getBuildServices(
 ): Promise<ServiceViewModel[]> {
   const env = resolveBuildContentEnv(options.env);
 
-  if (shouldUseLocalWordPressFixtures(env)) {
-    return fixtureServices;
-  }
-
   if (options.wordpress?.getServices) {
     return options.wordpress.getServices();
+  }
+
+  if (shouldUseLocalWordPressFixtures(env)) {
+    return fixtureServices;
   }
 
   return createDefaultWordPressClient(env).getServices();
@@ -47,12 +55,12 @@ export async function getBuildTransformations(
 ): Promise<TransformationViewModel[]> {
   const env = resolveBuildContentEnv(options.env);
 
-  if (shouldUseLocalWordPressFixtures(env)) {
-    return fixtureTransformations;
-  }
-
   if (options.wordpress?.getTransformations) {
     return options.wordpress.getTransformations();
+  }
+
+  if (shouldUseLocalWordPressFixtures(env)) {
+    return fixtureTransformations;
   }
 
   return createDefaultWordPressClient(env).getTransformations();
@@ -61,12 +69,12 @@ export async function getBuildTransformations(
 export async function getBuildPosts(options: BuildContentOptions = {}): Promise<PostViewModel[]> {
   const env = resolveBuildContentEnv(options.env);
 
-  if (shouldUseLocalWordPressFixtures(env)) {
-    return fixturePosts;
-  }
-
   if (options.wordpress?.getPublishedPosts) {
     return options.wordpress.getPublishedPosts();
+  }
+
+  if (shouldUseLocalWordPressFixtures(env)) {
+    return fixturePosts;
   }
 
   return createDefaultWordPressClient(env).getPublishedPosts();
@@ -86,6 +94,7 @@ function resolveBuildContentEnv(env?: BuildContentEnv): BuildContentEnv {
   return {
     WORDPRESS_API_BASE_URL: currentEnv.WORDPRESS_API_BASE_URL,
     PRODUCTION_LAUNCH_APPROVED: currentEnv.PRODUCTION_LAUNCH_APPROVED,
+    OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: currentEnv.OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES,
   };
 }
 

@@ -23,6 +23,10 @@ const rebuildLockKey = 'wordpress:rebuild:deploy';
 const rebuildEnqueueLockKey = 'wordpress:rebuild:enqueue';
 const rebuildLockTtlSeconds = 300;
 const rebuildEnqueueLockTtlSeconds = 10;
+const rebuildEnqueueLockAttempts = 3;
+const rebuildEnqueueRetryDelayMs = 25;
+const triggeredDeploymentTimeoutMs = 30 * 60_000;
+const rebuildRequestTimeoutMs = 10_000;
 
 export type WordPressWebhookErrorCode =
   | 'invalid_json'
@@ -58,6 +62,9 @@ export interface RebuildEventRecord {
   processedAt: Date | null;
   deployStartedAt: Date | null;
   deployTriggeredAt: Date | null;
+  deployJobId: string | null;
+  deployJobState: string | null;
+  deployJobCreatedAt: Date | null;
   deployFinishedAt: Date | null;
   buildDurationMs: number | null;
   deployResponseStatus: number | null;
@@ -89,6 +96,9 @@ export interface RebuildEventStore {
     values: {
       deployTriggeredAt: Date;
       deployResponseStatus: number;
+      deployJobId: string;
+      deployJobState: string;
+      deployJobCreatedAt: Date;
     },
   ): Promise<void>;
   markEventsCompleted(
@@ -141,6 +151,10 @@ interface RebuildProcessorOptions {
   emailSender?: EmailSender;
   alertRecipients?: string[];
   now?: () => Date;
+  sleep?: (ms: number) => Promise<void>;
+  enqueueLockAttempts?: number;
+  enqueueRetryDelayMs?: number;
+  requestTimeoutMs?: number;
 }
 
 export class WordPressWebhookError extends Error {
@@ -213,6 +227,10 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
   const emailSender = options.emailSender ?? sendEmail;
   const alertRecipients = options.alertRecipients ?? [];
   const deploymentTracker = options.deploymentTracker ?? null;
+  const sleep = options.sleep ?? delay;
+  const enqueueLockAttempts = options.enqueueLockAttempts ?? rebuildEnqueueLockAttempts;
+  const enqueueRetryDelayMs = options.enqueueRetryDelayMs ?? rebuildEnqueueRetryDelayMs;
+  const requestTimeoutMs = options.requestTimeoutMs ?? rebuildRequestTimeoutMs;
 
   return {
     async enqueueRebuildEvent(payload) {
@@ -220,10 +238,14 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
         return;
       }
 
-      const acquiredLock = await options.lockStore.acquire(
-        rebuildEnqueueLockKey,
-        rebuildEnqueueLockTtlSeconds,
-      );
+      const acquiredLock = await acquireLockWithRetry({
+        lockStore: options.lockStore,
+        key: rebuildEnqueueLockKey,
+        ttlSeconds: rebuildEnqueueLockTtlSeconds,
+        attempts: enqueueLockAttempts,
+        retryDelayMs: enqueueRetryDelayMs,
+        sleep,
+      });
       if (!acquiredLock) {
         throw new Error('Rebuild enqueue lock is currently held.');
       }
@@ -261,6 +283,9 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
           processedAt: null,
           deployStartedAt: null,
           deployTriggeredAt: null,
+          deployJobId: null,
+          deployJobState: null,
+          deployJobCreatedAt: null,
           deployFinishedAt: null,
           buildDurationMs: null,
           deployResponseStatus: null,
@@ -311,6 +336,7 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
         const response = await fetcher(options.deployHookUrl, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
+          signal: AbortSignal.timeout(requestTimeoutMs),
           body: JSON.stringify({
             source: 'wordpress',
             eventCount: dueEvents.length,
@@ -351,9 +377,14 @@ export function createRebuildProcessor(options: RebuildProcessorOptions): Rebuil
           };
         }
 
+        const deployHookJob = await readDeployHookJob(response);
+
         await options.eventStore.markEventsTriggered(ids, {
           deployTriggeredAt,
           deployResponseStatus: response.status,
+          deployJobId: deployHookJob.id,
+          deployJobState: deployHookJob.state,
+          deployJobCreatedAt: deployHookJob.createdAt,
         });
 
         return {
@@ -416,11 +447,21 @@ async function processTriggeredDeployment(input: {
     return emptyProcessResult('deployment_pending');
   }
 
-  const deployment = await input.deploymentTracker.findLatestDeploymentStartedAfter({
-    since: getEarliestDeployTriggeredAt(input.events),
+  const deployHookJob = getDeployHookJob(input.events);
+  if (!deployHookJob) {
+    return markTriggeredEventsTimedOut(input, 'unknown', getEarliestDeployTriggeredAt(input.events));
+  }
+
+  const deployment = await input.deploymentTracker.findLatestDeployHookDeployment({
+    jobId: deployHookJob.id,
+    createdAt: deployHookJob.createdAt,
   });
 
   if (!deployment || !isTerminalDeploymentState(deployment.state)) {
+    if (input.now.getTime() - deployHookJob.createdAt.getTime() > triggeredDeploymentTimeoutMs) {
+      return markTriggeredEventsTimedOut(input, deployHookJob.id, deployHookJob.createdAt);
+    }
+
     return emptyProcessResult('deployment_pending');
   }
 
@@ -482,6 +523,52 @@ async function processTriggeredDeployment(input: {
     buildDurationMs,
     architectureReviewRequired,
     occurredAt: deployFinishedAt,
+  });
+
+  return {
+    triggered: false,
+    processedEvents: 0,
+    failedEvents: eventCount,
+    buildDurationMs,
+    architectureReviewRequired,
+  };
+}
+
+async function markTriggeredEventsTimedOut(
+  input: {
+    events: RebuildEventRecord[];
+    eventStore: RebuildEventStore;
+    emailSender: EmailSender;
+    alertRecipients: string[];
+    now: Date;
+  },
+  jobId: string,
+  jobCreatedAt: Date,
+): Promise<RebuildProcessResult> {
+  const ids = input.events.map((event) => event.id);
+  const eventCount = input.events.length;
+  const buildDurationMs = Math.max(0, input.now.getTime() - jobCreatedAt.getTime());
+  const architectureReviewRequired = buildDurationMs > longBuildThresholdMs;
+  const failureReason = `Timed out waiting for Vercel deployment for deploy hook job ${jobId}.`;
+
+  await input.eventStore.markEventsFailed(ids, {
+    processedAt: input.now,
+    deployStartedAt: jobCreatedAt,
+    deployFinishedAt: input.now,
+    buildDurationMs,
+    deployResponseStatus: getSharedDeployResponseStatus(input.events),
+    deploymentId: null,
+    deploymentState: null,
+    deploymentUrl: null,
+    error: failureReason,
+    longBuildReviewRequired: architectureReviewRequired,
+  });
+  await sendBuildAlert(input.emailSender, input.alertRecipients, {
+    reason: failureReason,
+    eventCount,
+    buildDurationMs,
+    architectureReviewRequired,
+    occurredAt: input.now,
   });
 
   return {
@@ -568,6 +655,9 @@ export function createInMemoryRebuildEventStore(): RebuildEventStore & {
             status: 'triggered',
             deployTriggeredAt: values.deployTriggeredAt,
             deployResponseStatus: values.deployResponseStatus,
+            deployJobId: values.deployJobId,
+            deployJobState: values.deployJobState,
+            deployJobCreatedAt: values.deployJobCreatedAt,
             error: null,
           });
         }
@@ -730,6 +820,9 @@ export function createDrizzleRebuildEventStore(db: Database): RebuildEventStore 
           status: 'triggered',
           deployTriggeredAt: values.deployTriggeredAt,
           deployResponseStatus: values.deployResponseStatus,
+          deployJobId: values.deployJobId,
+          deployJobState: values.deployJobState,
+          deployJobCreatedAt: values.deployJobCreatedAt,
           error: null,
         })
         .where(inArray(rebuildEvents.id, ids));
@@ -953,6 +1046,75 @@ function getEarliestDeployTriggeredAt(events: RebuildEventRecord[]) {
 
 function getSharedDeployResponseStatus(events: RebuildEventRecord[]) {
   return events.find((event) => event.deployResponseStatus !== null)?.deployResponseStatus ?? null;
+}
+
+function getDeployHookJob(events: RebuildEventRecord[]) {
+  const event = events.find((record) => record.deployJobId && record.deployJobCreatedAt);
+  if (!event?.deployJobId || !event.deployJobCreatedAt) {
+    return null;
+  }
+
+  return {
+    id: event.deployJobId,
+    createdAt: event.deployJobCreatedAt,
+  };
+}
+
+async function readDeployHookJob(response: Response) {
+  let body: unknown;
+
+  try {
+    body = await response.json();
+  } catch (error) {
+    throw new Error('Deploy hook response did not include a readable Vercel job payload.');
+  }
+
+  const record = asPlainRecord(body);
+  const job = asPlainRecord(record?.job);
+  const id = typeof job?.id === 'string' && job.id.trim() !== '' ? job.id : null;
+  const state = typeof job?.state === 'string' && job.state.trim() !== '' ? job.state : null;
+  const createdAt = typeof job?.createdAt === 'number' ? new Date(job.createdAt) : null;
+
+  if (!id || !state || !createdAt || Number.isNaN(createdAt.getTime())) {
+    throw new Error('Deploy hook response did not include a valid Vercel job id, state, and createdAt.');
+  }
+
+  return { id, state, createdAt };
+}
+
+async function acquireLockWithRetry(input: {
+  lockStore: RebuildLockStore;
+  key: string;
+  ttlSeconds: number;
+  attempts: number;
+  retryDelayMs: number;
+  sleep: (ms: number) => Promise<void>;
+}) {
+  const attempts = Math.max(1, input.attempts);
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (await input.lockStore.acquire(input.key, input.ttlSeconds)) {
+      return true;
+    }
+
+    if (attempt < attempts - 1) {
+      await input.sleep(input.retryDelayMs);
+    }
+  }
+
+  return false;
+}
+
+function asPlainRecord(value: unknown) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function isTerminalDeploymentState(state: VercelDeploymentState) {

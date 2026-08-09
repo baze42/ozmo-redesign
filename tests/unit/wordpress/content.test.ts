@@ -9,30 +9,58 @@ import {
 } from '../../../src/lib/wordpress/content';
 
 describe('WordPress build content fallback', () => {
-  it('uses local WordPress-shaped fixtures only when no CMS URL is configured before launch', () => {
+  it('uses local WordPress-shaped fixtures only behind an explicit non-Vercel flag', () => {
     expect(
       shouldUseLocalWordPressFixtures({
         WORDPRESS_API_BASE_URL: '',
         PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
       }),
     ).toBe(true);
     expect(
       shouldUseLocalWordPressFixtures({
         WORDPRESS_API_BASE_URL: 'https://cms.example.test/wp-json/wp/v2',
         PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
       }),
     ).toBe(false);
     expect(
       shouldUseLocalWordPressFixtures({
         WORDPRESS_API_BASE_URL: '',
         PRODUCTION_LAUNCH_APPROVED: true,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldUseLocalWordPressFixtures({
+        WORDPRESS_API_BASE_URL: '',
+        PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: false,
       }),
     ).toBe(false);
   });
 
+  it('does not allow local fixtures on Vercel even when the local flag is present', () => {
+    vi.stubEnv('VERCEL', '1');
+
+    expect(
+      shouldUseLocalWordPressFixtures({
+        WORDPRESS_API_BASE_URL: '',
+        PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+      }),
+    ).toBe(false);
+
+    vi.unstubAllEnvs();
+  });
+
   it('provides six development services with business outcomes', async () => {
     const services = await getBuildServices({
-      env: { WORDPRESS_API_BASE_URL: '', PRODUCTION_LAUNCH_APPROVED: false },
+      env: {
+        WORDPRESS_API_BASE_URL: '',
+        PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+      },
     });
 
     expect(services).toHaveLength(6);
@@ -42,7 +70,11 @@ describe('WordPress build content fallback', () => {
 
   it('provides qualitative transformation fixtures without fake metrics', async () => {
     const transformations = await getBuildTransformations({
-      env: { WORDPRESS_API_BASE_URL: '', PRODUCTION_LAUNCH_APPROVED: false },
+      env: {
+        WORDPRESS_API_BASE_URL: '',
+        PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+      },
     });
 
     expect(transformations).toHaveLength(3);
@@ -77,6 +109,7 @@ describe('WordPress build content fallback', () => {
       env: {
         WORDPRESS_API_BASE_URL: 'https://cms.example.test/wp-json/wp/v2',
         PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: false,
       },
       wordpress,
     });
@@ -95,7 +128,11 @@ describe('blog index robots policy', () => {
 
   it('provides three local posts for RSS and static blog detail generation', async () => {
     const posts = await getBuildPosts({
-      env: { WORDPRESS_API_BASE_URL: '', PRODUCTION_LAUNCH_APPROVED: false },
+      env: {
+        WORDPRESS_API_BASE_URL: '',
+        PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+      },
     });
 
     expect(posts).toHaveLength(3);

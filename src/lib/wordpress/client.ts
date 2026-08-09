@@ -1,4 +1,7 @@
 import { getEnv } from '../config/env';
+import { buildWordPressSnapshotFallbackEmail } from '../../emails/admin-alert-wordpress-snapshot';
+import { sendEmail } from '../email/resend';
+import { parseEmailList } from '../email/templates';
 
 import {
   WordPressMappingError,
@@ -74,6 +77,7 @@ export function createWordPressClient(options: WordPressClientOptions): WordPres
     endpoint: string,
     snapshotKey: string,
     mapper: (item: unknown) => T,
+    validate: (items: T[]) => void = () => undefined,
   ): Promise<T[]> {
     let rawItems: unknown[];
 
@@ -101,6 +105,7 @@ export function createWordPressClient(options: WordPressClientOptions): WordPres
       throw error;
     }
 
+    validate(mapped);
     await snapshots.writeSnapshot(snapshotKey, mapped);
 
     return mapped;
@@ -124,60 +129,57 @@ export function createWordPressClient(options: WordPressClientOptions): WordPres
 
   return {
     async getServices() {
-      const services = await fetchMappedCollection(
+      return fetchMappedCollection(
         'service',
         'service?status=publish&per_page=100&_embed=1',
         'wordpress:services',
         mapService,
+        (services) => {
+          if (services.length === 0) {
+            throw new WordPressClientError(
+              'required_content_empty',
+              'service',
+              'WordPress returned no published services. The /services build gate requires content.',
+            );
+          }
+        },
       );
-
-      if (services.length === 0) {
-        throw new WordPressClientError(
-          'required_content_empty',
-          'service',
-          'WordPress returned no published services. The /services build gate requires content.',
-        );
-      }
-
-      return services;
     },
 
     async getTransformations() {
-      const transformations = await fetchMappedCollection(
+      return fetchMappedCollection(
         'transformation',
         'transformation?status=publish&per_page=100&_embed=1',
         'wordpress:transformations',
         mapTransformation,
+        (transformations) => {
+          if (transformations.length === 0) {
+            throw new WordPressClientError(
+              'required_content_empty',
+              'transformation',
+              'WordPress returned no published transformations. The /portfolio build gate requires content.',
+            );
+          }
+        },
       );
-
-      if (transformations.length === 0) {
-        throw new WordPressClientError(
-          'required_content_empty',
-          'transformation',
-          'WordPress returned no published transformations. The /portfolio build gate requires content.',
-        );
-      }
-
-      return transformations;
     },
 
     async getPublishedPosts() {
-      const posts = await fetchMappedCollection(
+      return fetchMappedCollection(
         'post',
         'posts?status=publish&per_page=100&_embed=1',
         'wordpress:posts',
         mapPost,
+        (posts) => {
+          if (productionLaunchApproved && posts.length < 3) {
+            throw new WordPressClientError(
+              'blog_launch_minimum_not_met',
+              'post',
+              'Production launch requires at least 3 published WordPress posts.',
+            );
+          }
+        },
       );
-
-      if (productionLaunchApproved && posts.length < 3) {
-        throw new WordPressClientError(
-          'blog_launch_minimum_not_met',
-          'post',
-          'Production launch requires at least 3 published WordPress posts.',
-        );
-      }
-
-      return posts;
     },
   };
 }
@@ -196,10 +198,21 @@ export function getPublishedPosts() {
 
 function createDefaultClient() {
   const env = getEnv();
+  const alertRecipients = parseEmailList(env.INTERNAL_ALERT_EMAILS);
 
   return createWordPressClient({
     apiBaseUrl: env.WORDPRESS_API_BASE_URL,
     productionLaunchApproved: env.PRODUCTION_LAUNCH_APPROVED,
+    onAlert: async (alert) => {
+      if (alertRecipients.length === 0) {
+        throw new Error('INTERNAL_ALERT_EMAILS is required before using WordPress snapshots.');
+      }
+
+      await sendEmail({
+        to: alertRecipients,
+        ...buildWordPressSnapshotFallbackEmail(alert),
+      });
+    },
   });
 }
 

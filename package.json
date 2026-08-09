@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro check && astro build",
+    "dev": "OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true astro dev",
+    "build": "OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true astro check && OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true astro build",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",

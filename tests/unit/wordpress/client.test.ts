@@ -1,7 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { WordPressClientError, createWordPressClient } from '../../../src/lib/wordpress/client';
-import type { SnapshotStore } from '../../../src/lib/wordpress/snapshots';
+import { configureEmailSender } from '../../../src/lib/email/resend';
+import {
+  WordPressClientError,
+  createWordPressClient,
+  getServices,
+} from '../../../src/lib/wordpress/client';
+import { configureSnapshotStore, type SnapshotStore } from '../../../src/lib/wordpress/snapshots';
 
 const serviceRecord = {
   id: 1,
@@ -98,6 +103,13 @@ function snapshotStore(initial: Record<string, unknown> = {}) {
   };
 }
 
+afterEach(() => {
+  configureEmailSender(null);
+  configureSnapshotStore(null);
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
+
 describe('createWordPressClient', () => {
   it('fetches, maps, sorts, and snapshots services', async () => {
     const snapshots = snapshotStore();
@@ -141,6 +153,26 @@ describe('createWordPressClient', () => {
       code: 'required_content_empty',
       contentType: 'service',
     });
+  });
+
+  it('does not overwrite the last-known-good services snapshot when the build gate fails', async () => {
+    const snapshots = snapshotStore({
+      'wordpress:services': [{ slug: 'last-known-good-service' }],
+    });
+    const client = createWordPressClient({
+      apiBaseUrl: 'https://cms.example.test/wp-json/wp/v2',
+      fetcher: async () => responseJson([]),
+      snapshots: snapshots.store,
+    });
+
+    await expect(client.getServices()).rejects.toMatchObject({
+      code: 'required_content_empty',
+    });
+
+    expect(snapshots.writeSnapshot).not.toHaveBeenCalled();
+    expect(snapshots.snapshots.get('wordpress:services')).toEqual([
+      { slug: 'last-known-good-service' },
+    ]);
   });
 
   it('fails the transformations build gate when WordPress returns no transformations', async () => {
@@ -260,6 +292,25 @@ describe('createWordPressClient', () => {
     });
   });
 
+  it('does not overwrite the last-known-good posts snapshot when the launch blog gate fails', async () => {
+    const snapshots = snapshotStore({
+      'wordpress:posts': [{ slug: 'last-known-good-post' }],
+    });
+    const client = createWordPressClient({
+      apiBaseUrl: 'https://cms.example.test/wp-json/wp/v2',
+      fetcher: async () => responseJson([postRecord(1), postRecord(2)]),
+      snapshots: snapshots.store,
+      productionLaunchApproved: true,
+    });
+
+    await expect(client.getPublishedPosts()).rejects.toMatchObject({
+      code: 'blog_launch_minimum_not_met',
+    });
+
+    expect(snapshots.writeSnapshot).not.toHaveBeenCalled();
+    expect(snapshots.snapshots.get('wordpress:posts')).toEqual([{ slug: 'last-known-good-post' }]);
+  });
+
   it('allows prelaunch blog content below the production minimum', async () => {
     const client = createWordPressClient({
       apiBaseUrl: 'https://cms.example.test/wp-json/wp/v2',
@@ -288,6 +339,48 @@ describe('createWordPressClient', () => {
     expect(snapshots.writeSnapshot).toHaveBeenCalledWith(
       'wordpress:transformations',
       transformations,
+    );
+  });
+});
+
+describe('default WordPress client', () => {
+  it('sends an internal alert when default snapshot fallback is used', async () => {
+    const emailSender = vi.fn();
+    const snapshots = snapshotStore({
+      'wordpress:services': [
+        {
+          id: 1,
+          slug: 'snapshot-service',
+          title: 'Snapshot Service',
+          summary: 'Snapshot summary',
+          bodyHtml: '<p>Snapshot body.</p>',
+          businessOutcomes: ['Snapshot outcome'],
+          sections: [],
+          cta: { label: 'Get a Free Site Review', url: '/free-site-audit' },
+          sortOrder: 1,
+          seo: { title: 'Snapshot Service', description: 'Snapshot summary' },
+          updatedAt: '2026-08-08T13:00:00.000Z',
+        },
+      ],
+    });
+    vi.stubEnv('WORDPRESS_API_BASE_URL', 'https://cms.example.test/wp-json/wp/v2');
+    vi.stubEnv('INTERNAL_ALERT_EMAILS', 'owner@ozmodigital.com,dev@example.com');
+    vi.stubGlobal('fetch', async () => {
+      throw new Error('network down');
+    });
+    configureSnapshotStore(snapshots.store);
+    configureEmailSender(emailSender);
+
+    const services = await getServices();
+
+    expect(services[0].slug).toBe('snapshot-service');
+    expect(emailSender).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: ['owner@ozmodigital.com', 'dev@example.com'],
+        subject: expect.stringContaining('WordPress snapshot fallback'),
+        html: expect.stringContaining('wordpress:services'),
+        text: expect.stringContaining('network down'),
+      }),
     );
   });
 });

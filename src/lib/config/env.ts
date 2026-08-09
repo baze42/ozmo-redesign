@@ -43,6 +43,11 @@ const envSchema = z.object({
   OZMO_BUSINESS_TIMEZONE: z.string().min(1).optional().default('America/Chicago'),
   OZMO_REVIEW_WEEKLY_CAPACITY: z.coerce.number().int().positive().optional().default(5),
   INTERNAL_ALERT_EMAILS: optionalString,
+  OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: z
+    .enum(['true', 'false'])
+    .optional()
+    .default('false')
+    .transform((value) => value === 'true'),
   PRODUCTION_LAUNCH_APPROVED: z
     .enum(['true', 'false'])
     .optional()

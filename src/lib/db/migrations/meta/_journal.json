@@ -22,6 +22,13 @@
       "when": 1786237706570,
       "tag": "0002_track_rebuild_deployments",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786238964269,
+      "tag": "0003_add_rebuild_deploy_hook_job",
+      "breakpoints": true
     }
   ]
 }

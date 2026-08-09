@@ -12,6 +12,8 @@ export interface VercelDeploymentRecord {
   id: string;
   url: string | null;
   state: VercelDeploymentState;
+  source: string | null;
+  deployHookJobId: string | null;
   createdAt: Date;
   buildingAt: Date | null;
   readyAt: Date | null;
@@ -20,7 +22,10 @@ export interface VercelDeploymentRecord {
 }
 
 export interface VercelDeploymentTracker {
-  findLatestDeploymentStartedAfter(input: { since: Date }): Promise<VercelDeploymentRecord | null>;
+  findLatestDeployHookDeployment(input: {
+    jobId: string;
+    createdAt: Date;
+  }): Promise<VercelDeploymentRecord | null>;
 }
 
 export function createVercelDeploymentTracker(options: {
@@ -29,16 +34,19 @@ export function createVercelDeploymentTracker(options: {
   teamId?: string;
   target?: string;
   branch?: string;
+  timeoutMs?: number;
   fetcher?: typeof fetch;
 }): VercelDeploymentTracker {
   const fetcher = options.fetcher ?? globalThis.fetch.bind(globalThis);
+  const timeoutMs = options.timeoutMs ?? 10_000;
 
   return {
-    async findLatestDeploymentStartedAfter(input) {
+    async findLatestDeployHookDeployment(input) {
       const url = new URL('https://api.vercel.com/v7/deployments');
       url.searchParams.set('projectId', options.projectId);
-      url.searchParams.set('since', String(input.since.getTime()));
+      url.searchParams.set('since', String(input.createdAt.getTime()));
       url.searchParams.set('limit', '10');
+      url.searchParams.set('state', 'BUILDING,READY,ERROR,CANCELED,BLOCKED');
 
       if (options.target) {
         url.searchParams.set('target', options.target);
@@ -56,6 +64,7 @@ export function createVercelDeploymentTracker(options: {
         headers: {
           authorization: `Bearer ${options.apiToken}`,
         },
+        signal: AbortSignal.timeout(timeoutMs),
       });
 
       if (!response.ok) {
@@ -68,6 +77,7 @@ export function createVercelDeploymentTracker(options: {
       return deployments
         .map(normalizeDeployment)
         .filter((deployment): deployment is VercelDeploymentRecord => deployment !== null)
+        .filter((deployment) => matchesDeployHookJob(deployment, input))
         .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())[0] ?? null;
     },
   };
@@ -91,6 +101,8 @@ function normalizeDeployment(value: unknown): VercelDeploymentRecord | null {
     id,
     url: readString(record.url),
     state,
+    source: readString(record.source),
+    deployHookJobId: readDeployHookJobId(record.meta),
     createdAt,
     buildingAt: readTimestamp(record.buildingAt),
     readyAt:
@@ -102,6 +114,35 @@ function normalizeDeployment(value: unknown): VercelDeploymentRecord | null {
     errorCode: readString(record.errorCode),
     errorMessage: readString(record.errorMessage),
   };
+}
+
+function matchesDeployHookJob(
+  deployment: VercelDeploymentRecord,
+  input: { jobId: string; createdAt: Date },
+) {
+  if (deployment.deployHookJobId) {
+    return deployment.deployHookJobId === input.jobId;
+  }
+
+  return (
+    deployment.source === 'api-trigger-git-deploy' &&
+    deployment.createdAt.getTime() >= input.createdAt.getTime()
+  );
+}
+
+function readDeployHookJobId(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return (
+    readString(record.deployHookJobId) ??
+    readString(record.deploy_hook_job_id) ??
+    readString(record.jobId) ??
+    readString(record.job_id)
+  );
 }
 
 function readString(value: unknown) {

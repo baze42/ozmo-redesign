@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createVercelDeploymentTracker } from '../../../src/lib/vercel/deployments';
 
 describe('createVercelDeploymentTracker', () => {
-  it('queries Vercel deployments by project, target, branch, and since timestamp', async () => {
+  it('queries Vercel deployments by project, target, branch, and deploy hook job timestamp', async () => {
     const fetcher = vi.fn(
       async (_input: string | URL | Request, _init?: RequestInit) =>
         new Response(
@@ -13,6 +13,20 @@ describe('createVercelDeploymentTracker', () => {
                 uid: 'dpl_ready',
                 url: 'ozmo-ready.vercel.app',
                 readyState: 'READY',
+                source: 'git',
+                meta: {},
+                createdAt: Date.parse('2026-08-09T12:03:03.000Z'),
+                buildingAt: Date.parse('2026-08-09T12:03:10.000Z'),
+                ready: Date.parse('2026-08-09T12:04:40.000Z'),
+                errorCode: null,
+                errorMessage: null,
+              },
+              {
+                uid: 'dpl_ready',
+                url: 'ozmo-ready.vercel.app',
+                readyState: 'READY',
+                source: 'api-trigger-git-deploy',
+                meta: { deployHookJobId: 'job_ready' },
                 createdAt: Date.parse('2026-08-09T12:02:03.000Z'),
                 buildingAt: Date.parse('2026-08-09T12:02:10.000Z'),
                 ready: Date.parse('2026-08-09T12:06:40.000Z'),
@@ -33,8 +47,9 @@ describe('createVercelDeploymentTracker', () => {
       fetcher,
     });
 
-    const deployment = await tracker.findLatestDeploymentStartedAfter({
-      since: new Date('2026-08-09T12:02:00.000Z'),
+    const deployment = await tracker.findLatestDeployHookDeployment({
+      jobId: 'job_ready',
+      createdAt: new Date('2026-08-09T12:02:00.000Z'),
     });
 
     expect(fetcher).toHaveBeenCalledTimes(1);
@@ -46,6 +61,7 @@ describe('createVercelDeploymentTracker', () => {
     expect(String(url)).toContain('target=production');
     expect(String(url)).toContain('branch=main');
     expect(String(url)).toContain(`since=${Date.parse('2026-08-09T12:02:00.000Z')}`);
+    expect(String(url)).toContain('state=BUILDING%2CREADY%2CERROR%2CCANCELED%2CBLOCKED');
     expect(String(url)).toContain('teamId=team_ozmo');
     expect(init).toMatchObject({
       headers: {
@@ -56,6 +72,8 @@ describe('createVercelDeploymentTracker', () => {
       id: 'dpl_ready',
       url: 'ozmo-ready.vercel.app',
       state: 'READY',
+      source: 'api-trigger-git-deploy',
+      deployHookJobId: 'job_ready',
       createdAt: new Date('2026-08-09T12:02:03.000Z'),
       buildingAt: new Date('2026-08-09T12:02:10.000Z'),
       readyAt: new Date('2026-08-09T12:06:40.000Z'),
@@ -72,8 +90,9 @@ describe('createVercelDeploymentTracker', () => {
     });
 
     await expect(
-      tracker.findLatestDeploymentStartedAfter({
-        since: new Date('2026-08-09T12:02:00.000Z'),
+      tracker.findLatestDeployHookDeployment({
+        jobId: 'job_failed',
+        createdAt: new Date('2026-08-09T12:02:00.000Z'),
       }),
     ).rejects.toThrow('Vercel deployments request failed with HTTP 401');
   });
