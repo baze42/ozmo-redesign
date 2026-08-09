@@ -17,11 +17,9 @@ import type {
 
 type BuildContentEnv = Pick<
   AppEnv,
-  | 'WORDPRESS_API_BASE_URL'
-  | 'PRODUCTION_LAUNCH_APPROVED'
-  | 'OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES'
+  'WORDPRESS_API_BASE_URL' | 'PRODUCTION_LAUNCH_APPROVED' | 'OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES'
 > &
-  Partial<Pick<AppEnv, 'INTERNAL_ALERT_EMAILS'>>;
+  Partial<Pick<AppEnv, 'OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT' | 'INTERNAL_ALERT_EMAILS'>>;
 
 type BuildContentOptions = {
   env?: BuildContentEnv;
@@ -31,7 +29,9 @@ type BuildContentOptions = {
 export function shouldUseLocalWordPressFixtures(env: BuildContentEnv): boolean {
   return (
     env.OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES &&
+    env.OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT === true &&
     process.env.VERCEL !== '1' &&
+    process.env.CI !== 'true' &&
     env.WORDPRESS_API_BASE_URL.trim() === '' &&
     !env.PRODUCTION_LAUNCH_APPROVED
   );
@@ -94,6 +94,9 @@ function resolveBuildContentEnv(env?: BuildContentEnv): BuildContentEnv {
     return {
       ...env,
       INTERNAL_ALERT_EMAILS: env.INTERNAL_ALERT_EMAILS ?? currentEnv.INTERNAL_ALERT_EMAILS,
+      OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT:
+        env.OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT ??
+        currentEnv.OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT,
     };
   }
 
@@ -101,6 +104,7 @@ function resolveBuildContentEnv(env?: BuildContentEnv): BuildContentEnv {
     WORDPRESS_API_BASE_URL: currentEnv.WORDPRESS_API_BASE_URL,
     PRODUCTION_LAUNCH_APPROVED: currentEnv.PRODUCTION_LAUNCH_APPROVED,
     OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: currentEnv.OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES,
+    OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: currentEnv.OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT,
     INTERNAL_ALERT_EMAILS: currentEnv.INTERNAL_ALERT_EMAILS,
   };
 }

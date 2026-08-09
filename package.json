@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true astro dev",
-    "build": "OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true astro check && OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true astro build",
+    "dev": "OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT=true astro dev",
+    "build": "astro check && astro build",
+    "build:local": "OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT=true astro check && OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES=true OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT=true astro build",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",

@@ -1,13 +1,13 @@
 import type { PostViewModel } from '../wordpress/mappers';
 
-const staticSitemapPaths = ['/', '/services', '/portfolio', '/privacy', '/terms', '/cookie-notice'];
+import { getSitemapRoutes } from './routes';
 
 export function generateSitemapXml(input: { siteUrl: string; posts: PostViewModel[] }) {
   const baseUrl = new URL(input.siteUrl);
   const blogReady = input.posts.length >= 3;
   const paths = [
-    ...staticSitemapPaths,
-    ...(blogReady ? ['/blog', '/rss.xml', ...input.posts.map((post) => post.canonicalPath)] : []),
+    ...getSitemapRoutes({ publishedPostCount: input.posts.length }).map((route) => route.path),
+    ...(blogReady ? input.posts.map((post) => post.canonicalPath) : []),
   ];
 
   const urls = [...new Set(paths)]

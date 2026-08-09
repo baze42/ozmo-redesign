@@ -12,6 +12,9 @@ describe('generateSitemapXml', () => {
 
     expect(sitemap).toContain('<loc>https://ozmodigital.com/</loc>');
     expect(sitemap).toContain('<loc>https://ozmodigital.com/services</loc>');
+    expect(sitemap).toContain('<loc>https://ozmodigital.com/contact</loc>');
+    expect(sitemap).toContain('<loc>https://ozmodigital.com/free-site-audit</loc>');
+    expect(sitemap).toContain('<loc>https://ozmodigital.com/schedule</loc>');
     expect(sitemap).not.toContain('<loc>https://ozmodigital.com/blog</loc>');
     expect(sitemap).not.toContain('<loc>https://ozmodigital.com/rss.xml</loc>');
     expect(sitemap).not.toContain('/blog/one');

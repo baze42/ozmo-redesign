@@ -154,4 +154,42 @@ describe('createVercelDeploymentTracker', () => {
       deployHookId: 'hook_ozmo',
     });
   });
+
+  it('matches deploy hook metadata without depending on one Vercel source string', async () => {
+    const tracker = createVercelDeploymentTracker({
+      apiToken: 'vercel-token',
+      projectId: 'prj_ozmo',
+      fetcher: vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              deployments: [
+                {
+                  uid: 'dpl_ozmo',
+                  url: 'ozmo-rebuild.vercel.app',
+                  readyState: 'READY',
+                  source: 'git-deploy-hook',
+                  meta: { deployHookId: 'hook_ozmo' },
+                  createdAt: Date.parse('2026-08-09T12:02:30.000Z'),
+                  buildingAt: Date.parse('2026-08-09T12:02:40.000Z'),
+                  ready: Date.parse('2026-08-09T12:03:50.000Z'),
+                },
+              ],
+            }),
+            { status: 200 },
+          ),
+      ),
+    });
+    const deployment = await tracker.findLatestDeployHookDeployment({
+      jobId: 'job_queued',
+      deployHookId: 'hook_ozmo',
+      createdAt: new Date('2026-08-09T12:02:00.000Z'),
+    });
+
+    expect(deployment).toMatchObject({
+      id: 'dpl_ozmo',
+      source: 'git-deploy-hook',
+      deployHookId: 'hook_ozmo',
+    });
+  });
 });

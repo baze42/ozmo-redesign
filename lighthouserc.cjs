@@ -1,7 +1,7 @@
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: 'npm run build && npm run serve:dist',
+      startServerCommand: 'npm run build:local && npm run serve:dist',
       startServerReadyPattern: 'Serving dist',
       startServerReadyTimeout: 120000,
       settings: {

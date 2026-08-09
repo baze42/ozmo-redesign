@@ -38,6 +38,7 @@ describe('WordPress build content fallback', () => {
         WORDPRESS_API_BASE_URL: '',
         PRODUCTION_LAUNCH_APPROVED: false,
         OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+        OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: true,
       }),
     ).toBe(true);
     expect(
@@ -77,12 +78,38 @@ describe('WordPress build content fallback', () => {
     vi.unstubAllEnvs();
   });
 
+  it('does not allow local fixtures for production-like non-Vercel builds', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    expect(
+      shouldUseLocalWordPressFixtures({
+        WORDPRESS_API_BASE_URL: '',
+        PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('allows local fixtures during an explicit local fixture build context', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    expect(
+      shouldUseLocalWordPressFixtures({
+        WORDPRESS_API_BASE_URL: '',
+        PRODUCTION_LAUNCH_APPROVED: false,
+        OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+        OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: true,
+      }),
+    ).toBe(true);
+  });
+
   it('provides six development services with business outcomes', async () => {
     const services = await getBuildServices({
       env: {
         WORDPRESS_API_BASE_URL: '',
         PRODUCTION_LAUNCH_APPROVED: false,
         OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+        OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: true,
       },
     });
 
@@ -97,6 +124,7 @@ describe('WordPress build content fallback', () => {
         WORDPRESS_API_BASE_URL: '',
         PRODUCTION_LAUNCH_APPROVED: false,
         OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+        OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: true,
       },
     });
 
@@ -200,6 +228,7 @@ describe('blog index robots policy', () => {
         WORDPRESS_API_BASE_URL: '',
         PRODUCTION_LAUNCH_APPROVED: false,
         OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: true,
+        OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: true,
       },
     });
 

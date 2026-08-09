@@ -9,7 +9,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'env -u FORCE_COLOR -u NO_COLOR npm run build && npm run serve:dist',
+    command: 'env -u FORCE_COLOR -u NO_COLOR npm run build:local && npm run serve:dist',
     url: 'http://127.0.0.1:4321',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

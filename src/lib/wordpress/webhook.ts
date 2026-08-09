@@ -93,6 +93,7 @@ export interface RebuildEventStore {
   listTriggeredEvents(): Promise<RebuildEventRecord[]>;
   listStaleProcessingEvents(cutoff: Date): Promise<RebuildEventRecord[]>;
   markEventsProcessing(ids: string[], deployStartedAt: Date): Promise<void>;
+  markEventsPollingError(ids: string[], error: string): Promise<void>;
   markEventsTriggered(
     ids: string[],
     values: {
@@ -471,17 +472,26 @@ async function processTriggeredDeployment(input: {
     return markTriggeredEventsTimedOut(input, 'unknown', getEarliestDeployTriggeredAt(input.events));
   }
 
-  const deployment = await input.deploymentTracker.findLatestDeployHookDeployment({
-    jobId: deployHookJob.id,
-    deployHookId: deployHookJob.deployHookId,
-    createdAt: deployHookJob.createdAt,
-  });
+  if (input.now.getTime() - deployHookJob.createdAt.getTime() > triggeredDeploymentTimeoutMs) {
+    return markTriggeredEventsTimedOut(input, deployHookJob.id, deployHookJob.createdAt);
+  }
+
+  let deployment: VercelDeploymentRecord | null;
+  try {
+    deployment = await input.deploymentTracker.findLatestDeployHookDeployment({
+      jobId: deployHookJob.id,
+      deployHookId: deployHookJob.deployHookId,
+      createdAt: deployHookJob.createdAt,
+    });
+  } catch (error) {
+    await input.eventStore.markEventsPollingError(
+      input.events.map((event) => event.id),
+      error instanceof Error ? error.message : 'Vercel deployment polling failed.',
+    );
+    return emptyProcessResult('deployment_pending');
+  }
 
   if (!deployment || !isTerminalDeploymentState(deployment.state)) {
-    if (input.now.getTime() - deployHookJob.createdAt.getTime() > triggeredDeploymentTimeoutMs) {
-      return markTriggeredEventsTimedOut(input, deployHookJob.id, deployHookJob.createdAt);
-    }
-
     return emptyProcessResult('deployment_pending');
   }
 
@@ -721,6 +731,14 @@ export function createInMemoryRebuildEventStore(): RebuildEventStore & {
       }
     },
 
+    async markEventsPollingError(ids, error) {
+      for (const record of records) {
+        if (ids.includes(record.id)) {
+          record.error = error;
+        }
+      }
+    },
+
     async markEventsTriggered(ids, values) {
       for (const record of records) {
         if (ids.includes(record.id)) {
@@ -893,6 +911,13 @@ export function createDrizzleRebuildEventStore(db: Database): RebuildEventStore 
       await db
         .update(rebuildEvents)
         .set({ status: 'processing', deployStartedAt })
+        .where(inArray(rebuildEvents.id, ids));
+    },
+
+    async markEventsPollingError(ids, error) {
+      await db
+        .update(rebuildEvents)
+        .set({ error })
         .where(inArray(rebuildEvents.id, ids));
     },
 

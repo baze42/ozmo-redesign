@@ -48,6 +48,11 @@ const envSchema = z.object({
     .optional()
     .default('false')
     .transform((value) => value === 'true'),
+  OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: z
+    .enum(['true', 'false'])
+    .optional()
+    .default('false')
+    .transform((value) => value === 'true'),
   PRODUCTION_LAUNCH_APPROVED: z
     .enum(['true', 'false'])
     .optional()

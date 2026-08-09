@@ -27,6 +27,7 @@ describe('getEnv', () => {
     expect(env.OZMO_REVIEW_WEEKLY_CAPACITY).toBe(5);
     expect(env.PRODUCTION_LAUNCH_APPROVED).toBe(false);
     expect(env.OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES).toBe(false);
+    expect(env.OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT).toBe(false);
   });
 
   it('parses numeric and boolean launch gate values', () => {
@@ -35,11 +36,13 @@ describe('getEnv', () => {
       OZMO_REVIEW_WEEKLY_CAPACITY: '7',
       PRODUCTION_LAUNCH_APPROVED: 'true',
       OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES: 'true',
+      OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT: 'true',
     });
 
     expect(env.OZMO_REVIEW_WEEKLY_CAPACITY).toBe(7);
     expect(env.PRODUCTION_LAUNCH_APPROVED).toBe(true);
     expect(env.OZMO_ALLOW_LOCAL_WORDPRESS_FIXTURES).toBe(true);
+    expect(env.OZMO_LOCAL_WORDPRESS_FIXTURE_CONTEXT).toBe(true);
   });
 
   it('throws a readable error when a URL value is invalid', () => {

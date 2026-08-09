@@ -495,6 +495,78 @@ describe('rebuild enqueueing and processing', () => {
     );
   });
 
+  it('keeps triggered rebuilds retryable when Vercel deployment polling fails before timeout', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const deploymentTracker: VercelDeploymentTracker = {
+      findLatestDeployHookDeployment: vi.fn(async () => {
+        throw new Error('Vercel deployments request timed out.');
+      }),
+    };
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore: createInMemoryRebuildLockStore(),
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(async () => deployHookResponse('job_retry', '2026-08-09T12:02:03.000Z')),
+      deploymentTracker,
+      emailSender: vi.fn(),
+      alertRecipients: ['owner@ozmodigital.com'],
+      now: sequenceDates([
+        '2026-08-09T12:00:00.000Z',
+        '2026-08-09T12:02:01.000Z',
+        '2026-08-09T12:02:03.000Z',
+      ]),
+    });
+
+    await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 1 }));
+    await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
+    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:08:00.000Z'));
+
+    expect(result).toMatchObject({
+      triggered: false,
+      failedEvents: 0,
+      skippedReason: 'deployment_pending',
+    });
+    expect(store.records[0]).toMatchObject({
+      status: 'triggered',
+      deployJobId: 'job_retry',
+      error: 'Vercel deployments request timed out.',
+    });
+  });
+
+  it('marks triggered rebuilds failed before polling when the deploy hook job is already stale', async () => {
+    const store = createInMemoryRebuildEventStore();
+    const deploymentTracker: VercelDeploymentTracker = {
+      findLatestDeployHookDeployment: vi.fn(async () => {
+        throw new Error('Vercel should not be polled for stale jobs.');
+      }),
+    };
+    const processor = createRebuildProcessor({
+      eventStore: store,
+      lockStore: createInMemoryRebuildLockStore(),
+      deployHookUrl: 'https://vercel.example.test/deploy',
+      fetcher: vi.fn(async () => deployHookResponse('job_stale_before_poll', '2026-08-09T12:02:03.000Z')),
+      deploymentTracker,
+      emailSender: vi.fn(),
+      alertRecipients: ['owner@ozmodigital.com'],
+      now: sequenceDates([
+        '2026-08-09T12:00:00.000Z',
+        '2026-08-09T12:02:01.000Z',
+        '2026-08-09T12:02:03.000Z',
+      ]),
+    });
+
+    await processor.enqueueRebuildEvent(verifiedPayload({ contentType: 'post', contentId: 1 }));
+    await processor.processDueRebuildEvents(new Date('2026-08-09T12:02:01.000Z'));
+    const result = await processor.processDueRebuildEvents(new Date('2026-08-09T12:33:00.000Z'));
+
+    expect(deploymentTracker.findLatestDeployHookDeployment).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      triggered: false,
+      failedEvents: 1,
+      architectureReviewRequired: true,
+    });
+  });
+
   it('marks stale processing rebuilds failed so killed deploy-hook invocations are not stranded', async () => {
     const store = createInMemoryRebuildEventStore();
     const emailSender = vi.fn();

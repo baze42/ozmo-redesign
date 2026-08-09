@@ -135,7 +135,6 @@ function matchesDeployHookJob(
   return (
     Boolean(input.deployHookId) &&
     deployment.deployHookId === input.deployHookId &&
-    deployment.source === 'api-trigger-git-deploy' &&
     deployment.createdAt.getTime() >= input.createdAt.getTime()
   );
 }
